@@ -51,7 +51,6 @@ const init = async () => {
   ]);
 
   currencySymbol = shopInfo.currencySymbol || 'Rs.';
-
   document.title = (shopInfo.shopName || 'Shop') + ' — Products';
   document.getElementById('shop-name').textContent = shopInfo.shopName || 'Our Shop';
   document.getElementById('shop-desc').textContent = shopInfo.description || '';
@@ -94,9 +93,7 @@ const render = () => {
   const content = document.getElementById('content');
   let filtered = products;
 
-  if (activeCategory) {
-    filtered = filtered.filter(p => p.category === activeCategory);
-  }
+  if (activeCategory) filtered = filtered.filter(p => p.category === activeCategory);
 
   if (searchTerm) {
     filtered = filtered.filter(p =>
