@@ -1,1 +1,23 @@
-.
+[
+  {
+    "name": "Electrical"
+  },
+  {
+    "name": "Plumbing"
+  },
+  {
+    "name": "Test Supplies"
+  },
+  {
+    "name": "Tools"
+  },
+  {
+    "name": "bulding"
+  },
+  {
+    "name": "oil"
+  },
+  {
+    "name": "wairing"
+  }
+]
