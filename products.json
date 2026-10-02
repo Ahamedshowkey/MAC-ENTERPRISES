@@ -33,17 +33,6 @@
     "stockStatus": "in"
   },
   {
-    "id": "6ab7c81ffe3d73f759e59144",
-    "name": "Test Cement 50kg",
-    "price": 1100,
-    "image": "",
-    "sku": "TEST-CEM-50",
-    "brand": "tokyo",
-    "unit": "kg",
-    "category": "oil",
-    "stockStatus": "in"
-  },
-  {
     "id": "6abd32629c2df1e98763eb08",
     "name": "aaa",
     "price": 1456,
