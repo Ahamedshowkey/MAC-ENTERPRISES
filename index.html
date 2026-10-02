@@ -3,90 +3,164 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#f5f2ed" />
+  <meta name="theme-color" content="#18181b" />
 
   <title>Loading…</title>
-  <meta name="description" id="meta-desc" content="Browse our products" />
+  <meta name="description" id="meta-desc" content="Hardware shop" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- ══════════ TICKER ══════════ -->
-  <div class="ticker">
-    <div class="ticker-track" id="ticker-track"></div>
+  <!-- ══════════ UTILITY BAR ══════════ -->
+  <div class="util">
+    <div class="util-inner">
+      <div class="util-left">
+        <span class="util-item" id="util-hours">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Open 8 AM – 6 PM
+        </span>
+        <span class="util-item" id="util-loc">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="util-loc-text">Visit our yard</span>
+        </span>
+      </div>
+      <div class="util-right">
+        <span class="util-item util-tag">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 15 8.5 22 9.3 17 14 18.3 21 12 17.8 5.7 21 7 14 2 9.3 9 8.5z"/></svg>
+          Trade quality since 2010
+        </span>
+      </div>
+    </div>
   </div>
 
 
-  <!-- ══════════ NAV ══════════ -->
-  <nav class="nav">
-    <div class="nav-inner">
+  <!-- ══════════ HEADER ══════════ -->
+  <header class="header">
+    <div class="header-inner">
 
-      <div class="nav-left">
-        <a href="#" class="nav-link" id="nav-call-link" hidden>Call</a>
-        <a href="#" class="nav-link" id="nav-wa-link" hidden>WhatsApp</a>
-      </div>
-
-      <a href="#" class="nav-center">
-        <div class="nav-logo-mark" id="brand-mark">M</div>
-        <div class="nav-logo-name" id="shop-name">Loading…</div>
+      <a href="#" class="logo">
+        <div class="logo-mark">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <div class="logo-name" id="shop-name">Loading…</div>
+          <div class="logo-tag" id="shop-tag">Hardware & Supplies</div>
+        </div>
       </a>
 
-      <div class="nav-right">
-        <button class="nav-search-toggle" id="search-toggle" aria-label="Search">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.3-4.3"></path>
-          </svg>
-          <span>Search</span>
-        </button>
-      </div>
-
-    </div>
-
-    <!-- Search overlay -->
-    <div class="search-overlay" id="search-overlay" hidden>
-      <div class="search-overlay-inner">
-        <input id="search-input" type="text" placeholder="What are you looking for?" autocomplete="off" />
-        <button class="search-close" id="search-close" aria-label="Close search">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <div class="search">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input id="search-input" type="text" placeholder="Search tools, pipes, paint, cement…" autocomplete="off" />
+        <button class="search-clear" id="search-clear" aria-label="Clear" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <path d="M18 6 6 18M6 6l12 12"/>
           </svg>
         </button>
       </div>
+
+      <div class="header-actions">
+        <a href="#" class="phone-btn" id="phone-btn" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          <span id="phone-text">Call</span>
+        </a>
+        <a href="#" class="wa-btn" id="wa-btn" hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
+          </svg>
+          <span>Order</span>
+        </a>
+      </div>
+
     </div>
-  </nav>
+
+    <!-- ══════════ CATEGORY BAR ══════════ -->
+    <nav class="catbar">
+      <div class="catbar-inner">
+        <div class="catbar-scroll" id="category-bar"></div>
+      </div>
+    </nav>
+  </header>
 
 
   <!-- ══════════ HERO ══════════ -->
   <section class="hero">
     <div class="hero-inner">
 
-      <div class="hero-meta">
-        <span class="hero-meta-line" id="hero-eyebrow">Established Collection</span>
-      </div>
+      <div class="hero-left">
+        <div class="hero-eyebrow">
+          <span class="eyebrow-dot"></span>
+          <span>Everything for the trade</span>
+        </div>
 
-      <h1 class="hero-title">
-        <span id="hero-line-1">Quality goods for</span><br/>
-        <em id="hero-line-2">everyday living.</em>
-      </h1>
+        <h1 class="hero-title">
+          Built to last.<br/>
+          <span class="hero-title-orange">Priced right.</span>
+        </h1>
 
-      <div class="hero-bottom">
-        <p class="hero-desc" id="hero-sub"></p>
-        <div class="hero-cta-group">
-          <button class="cta-primary" id="hero-cta">
-            Browse catalog
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <path d="M7 17 17 7M7 7h10v10"/>
+        <p class="hero-desc" id="hero-sub">
+          Professional-grade hardware, tools, and building supplies. Trade prices, honest service, fast delivery.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn-primary" id="hero-cta">
+            Shop Catalog
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </button>
-          <a href="#" class="cta-secondary" id="hero-contact">
+          <a href="#" class="btn-outline" id="hero-contact">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
+            </svg>
             <span id="hero-contact-text">Chat with us</span>
           </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-num" id="stat-products">0</div>
+            <div class="stat-lbl">Products in stock</div>
+          </div>
+          <div class="stat-div"></div>
+          <div class="stat">
+            <div class="stat-num" id="stat-categories">0</div>
+            <div class="stat-lbl">Categories</div>
+          </div>
+          <div class="stat-div"></div>
+          <div class="stat">
+            <div class="stat-num">Same day</div>
+            <div class="stat-lbl">Local delivery</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-card">
+          <div class="hero-card-icon">🔧</div>
+          <div class="hero-card-h">Trade account</div>
+          <div class="hero-card-p">Bulk pricing for contractors &amp; builders</div>
+        </div>
+        <div class="hero-card hero-card-alt">
+          <div class="hero-card-icon">🚚</div>
+          <div class="hero-card-h">Free delivery</div>
+          <div class="hero-card-p">On orders above Rs. 25,000</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-icon">✓</div>
+          <div class="hero-card-h">Quality assured</div>
+          <div class="hero-card-p">Every item inspected before sale</div>
         </div>
       </div>
 
@@ -94,119 +168,86 @@
   </section>
 
 
-  <!-- ══════════ MARQUEE STRIP ══════════ -->
-  <section class="marquee">
-    <div class="marquee-track" id="marquee-track">
-      <div class="marquee-chunk">
-        <span>Free delivery on bulk orders</span>
-        <span class="marquee-dot">◆</span>
-        <span>Trusted by local builders</span>
-        <span class="marquee-dot">◆</span>
-        <span>Quality guaranteed</span>
-        <span class="marquee-dot">◆</span>
-        <span>Order via WhatsApp</span>
-        <span class="marquee-dot">◆</span>
-        <span>Open 24/7 online</span>
-        <span class="marquee-dot">◆</span>
+  <!-- ══════════ TRUST STRIP ══════════ -->
+  <section class="trust">
+    <div class="trust-inner">
+      <div class="trust-item">
+        <div class="trust-icon">📞</div>
+        <div>
+          <div class="trust-h">Call &amp; reserve</div>
+          <div class="trust-p">Hold stock for pickup</div>
+        </div>
       </div>
-      <div class="marquee-chunk" aria-hidden="true">
-        <span>Free delivery on bulk orders</span>
-        <span class="marquee-dot">◆</span>
-        <span>Trusted by local builders</span>
-        <span class="marquee-dot">◆</span>
-        <span>Quality guaranteed</span>
-        <span class="marquee-dot">◆</span>
-        <span>Order via WhatsApp</span>
-        <span class="marquee-dot">◆</span>
-        <span>Open 24/7 online</span>
-        <span class="marquee-dot">◆</span>
+      <div class="trust-item">
+        <div class="trust-icon">💬</div>
+        <div>
+          <div class="trust-h">WhatsApp order</div>
+          <div class="trust-p">Send your list, we'll prep it</div>
+        </div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">🏗️</div>
+        <div>
+          <div class="trust-h">Bulk supply</div>
+          <div class="trust-p">Site deliveries available</div>
+        </div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">↩️</div>
+        <div>
+          <div class="trust-h">Fair returns</div>
+          <div class="trust-p">Unused items, 7 days</div>
+        </div>
       </div>
     </div>
   </section>
 
 
-  <!-- ══════════ CATEGORIES — EDITORIAL LIST ══════════ -->
-  <section class="categories">
-    <div class="categories-inner">
-
-      <div class="categories-head">
-        <div class="section-label">Categories</div>
-        <div class="section-count" id="cat-count-display">—</div>
+  <!-- ══════════ TOOLBAR ══════════ -->
+  <section class="toolbar">
+    <div class="toolbar-inner">
+      <div class="toolbar-count" id="result-count">Loading…</div>
+      <div class="toolbar-right">
+        <label class="sort-lbl">Sort</label>
+        <select class="sort-select" id="sort-select">
+          <option value="featured">Featured</option>
+          <option value="price-asc">Price: Low → High</option>
+          <option value="price-desc">Price: High → Low</option>
+          <option value="name-asc">A → Z</option>
+        </select>
       </div>
-
-      <div class="categories-list" id="categories"></div>
-
     </div>
   </section>
 
 
   <!-- ══════════ PRODUCTS ══════════ -->
-  <section class="products">
+  <main class="products">
     <div class="products-inner">
-
-      <div class="products-head">
-        <h2 class="products-title">
-          <span id="products-title-text">Selected Products</span>
-          <span class="products-count" id="products-count-display"></span>
-        </h2>
-
-        <div class="products-sort">
-          <span class="sort-label">Sort by</span>
-          <select class="sort-select" id="sort-select">
-            <option value="featured">Featured</option>
-            <option value="price-asc">Price ascending</option>
-            <option value="price-desc">Price descending</option>
-            <option value="name-asc">Alphabetical</option>
-          </select>
-        </div>
-      </div>
-
       <div id="content" class="state-loading">
         <div class="loader">
-          <div class="loader-line"></div>
-          <div class="loader-text">Loading catalog</div>
+          <div class="loader-spinner"></div>
+          <div class="loader-text">Loading stock…</div>
         </div>
       </div>
-
     </div>
-  </section>
+  </main>
 
 
-  <!-- ══════════ BENTO ══════════ -->
-  <section class="bento">
-    <div class="bento-inner">
-
-      <div class="bento-head">
-        <div class="section-label">The experience</div>
-        <h2 class="bento-title">A modern way to shop for <em>construction &amp; home.</em></h2>
+  <!-- ══════════ BULK BANNER ══════════ -->
+  <section class="bulk">
+    <div class="bulk-inner">
+      <div class="bulk-left">
+        <div class="bulk-eyebrow">For contractors &amp; builders</div>
+        <h2 class="bulk-h">Ordering in bulk? We'll quote you a trade price.</h2>
+        <p class="bulk-p">Cement pallets, pipe bundles, roofing sheets, wire drums — send us your list and we'll respond with a delivered price within an hour.</p>
       </div>
-
-      <div class="bento-grid">
-
-        <div class="bento-cell bento-large">
-          <div class="bento-num">01</div>
-          <div class="bento-h">Curated selection</div>
-          <div class="bento-p">Every product is inspected and hand-picked. If we wouldn't use it ourselves, we don't stock it.</div>
-        </div>
-
-        <div class="bento-cell">
-          <div class="bento-num">02</div>
-          <div class="bento-h">Direct pricing</div>
-          <div class="bento-p">No middlemen. Fair prices. Honest margins.</div>
-        </div>
-
-        <div class="bento-cell">
-          <div class="bento-num">03</div>
-          <div class="bento-h">Local delivery</div>
-          <div class="bento-p">Same-week delivery on bulk orders.</div>
-        </div>
-
-        <div class="bento-cell bento-wide">
-          <div class="bento-num">04</div>
-          <div class="bento-h">Order your way</div>
-          <div class="bento-p">Browse, tap, and confirm on WhatsApp — or call the shop directly. We make ordering effortless.</div>
-        </div>
-
+      <div class="bulk-right">
+        <a href="#" class="btn-primary btn-large" id="bulk-cta">
+          Request trade quote
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
       </div>
     </div>
   </section>
@@ -217,30 +258,52 @@
     <div class="footer-inner">
 
       <div class="footer-top">
-        <div class="footer-big" id="footer-big">Shop</div>
+        <div class="footer-brand">
+          <div class="footer-mark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </div>
+          <div class="footer-brand-text">
+            <div class="footer-name" id="footer-name">Shop</div>
+            <div class="footer-tagline" id="footer-tagline"></div>
+          </div>
+        </div>
+
         <div class="footer-cols">
           <div class="footer-col">
-            <div class="footer-head">Visit</div>
+            <div class="footer-h">Visit us</div>
             <div class="footer-body" id="footer-visit"></div>
           </div>
           <div class="footer-col">
-            <div class="footer-head">Contact</div>
+            <div class="footer-h">Contact</div>
             <div class="footer-body" id="footer-contact"></div>
           </div>
           <div class="footer-col">
-            <div class="footer-head">Categories</div>
-            <div class="footer-body" id="footer-categories"></div>
+            <div class="footer-h">Popular</div>
+            <div class="footer-body" id="footer-cats"></div>
+          </div>
+          <div class="footer-col">
+            <div class="footer-h">Follow</div>
+            <div class="footer-body" id="footer-follow"></div>
           </div>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <div class="footer-legal" id="footer-legal"></div>
-        <div class="footer-follow" id="footer-follow"></div>
+        <div id="footer-legal">© Shop</div>
+        <div class="footer-note">Trade name &amp; prices on request</div>
       </div>
-
     </div>
   </footer>
+
+
+  <!-- ══════════ FLOATING WA ══════════ -->
+  <a href="#" class="wa-float" id="wa-fab" title="Chat on WhatsApp" hidden>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
+    </svg>
+  </a>
 
 
   <!-- ══════════ MODAL ══════════ -->
@@ -248,57 +311,60 @@
     <div class="modal-card">
 
       <button class="modal-x" id="modal-close" aria-label="Close">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
           <path d="M18 6 6 18M6 6l12 12"/>
         </svg>
       </button>
 
       <div class="modal-grid">
 
-        <div class="modal-left">
+        <div class="modal-visual">
           <div class="modal-img-wrap">
             <img id="modal-img" alt="" />
           </div>
           <div class="modal-status" id="modal-badge"></div>
         </div>
 
-        <div class="modal-right">
+        <div class="modal-info">
           <div class="modal-cat" id="modal-cat"></div>
-
           <h2 class="modal-h" id="modal-name"></h2>
-
           <div class="modal-brand" id="modal-brand"></div>
 
-          <div class="modal-price" id="modal-price"></div>
+          <div class="modal-price-row">
+            <div class="modal-price" id="modal-price"></div>
+            <div class="modal-unit-tag" id="modal-unit-tag"></div>
+          </div>
 
-          <div class="modal-facts">
-            <div class="fact">
-              <div class="fact-lbl">Reference</div>
-              <div class="fact-val" id="modal-sku">—</div>
+          <div class="modal-specs">
+            <div class="spec">
+              <div class="spec-lbl">SKU / Code</div>
+              <div class="spec-val mono" id="modal-sku">—</div>
             </div>
-            <div class="fact">
-              <div class="fact-lbl">Unit</div>
-              <div class="fact-val" id="modal-unit">—</div>
+            <div class="spec">
+              <div class="spec-lbl">Unit</div>
+              <div class="spec-val" id="modal-unit">—</div>
             </div>
-            <div class="fact">
-              <div class="fact-lbl">Availability</div>
-              <div class="fact-val" id="modal-status">—</div>
+            <div class="spec">
+              <div class="spec-lbl">Availability</div>
+              <div class="spec-val" id="modal-status">—</div>
             </div>
           </div>
 
           <div class="modal-actions">
             <a href="#" class="modal-btn-primary" id="modal-order-btn">
-              <span>Order on WhatsApp</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <path d="M7 17 17 7M7 7h10v10"/>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
               </svg>
+              Order on WhatsApp
             </a>
             <a href="#" class="modal-btn-secondary" id="modal-call-btn" hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
               Call the shop
             </a>
           </div>
         </div>
-
       </div>
     </div>
   </div>
