@@ -68,17 +68,13 @@ const loadJSON = async (file, fallback = []) => {
 // WHATSAPP HELPERS
 // ==========================================================================
 
-/**
- * Normalize a phone number for wa.me links.
- * Assumes Sri Lankan numbers when no country code present.
- */
 const waPhone = (raw) => {
   if (!raw) return '';
   let d = String(raw).replace(/[^\d]/g, '');
   if (!d) return '';
   if (d.startsWith('94')) return d;
   if (d.startsWith('0'))  return '94' + d.slice(1);
-  if (d.length === 9)     return '94' + d;   // e.g. 771234567
+  if (d.length === 9)     return '94' + d;
   return d;
 };
 
@@ -107,7 +103,6 @@ const orderMessage = (product) => [
 
 const init = async () => {
 
-  // ---- Load data files ----
   const [loadedProducts, loadedCategories, loadedShop] = await Promise.all([
     loadJSON('products.json', []),
     loadJSON('categories.json', []),
@@ -120,8 +115,6 @@ const init = async () => {
 
   currencySymbol = shopInfo.currencySymbol || 'Rs.';
 
-
-  // ---- If categories.json is empty, derive categories from products ----
   if (categories.length === 0 && products.length > 0) {
     const map = new Map();
     products.forEach((p) => {
@@ -134,7 +127,6 @@ const init = async () => {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  // ---- Count products per category (in case categories.json was provided) ----
   const productCountByCat = {};
   products.forEach((p) => {
     const c = p.category || '';
@@ -146,8 +138,6 @@ const init = async () => {
     count: productCountByCat[c.name] || c.count || 0
   }));
 
-
-  // ---- Populate static content ----
   populateBrand();
   populateHero();
   populateContact();
@@ -155,10 +145,8 @@ const init = async () => {
   populateFooter();
   wireEvents();
 
-  // ---- Render products ----
   render();
 
-  // ---- Track page view ----
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
   });
@@ -166,7 +154,7 @@ const init = async () => {
 
 
 // ==========================================================================
-// POPULATE HEADER + HERO
+// POPULATE STATIC CONTENT
 // ==========================================================================
 
 const populateBrand = () => {
@@ -180,7 +168,6 @@ const populateBrand = () => {
   const initial = name.trim().charAt(0).toUpperCase() || 'S';
   document.getElementById('brand-mark').textContent = initial;
 
-  // Meta tags
   document.getElementById('meta-desc').setAttribute('content', tag || name);
   document.getElementById('og-title').setAttribute('content', name);
   document.getElementById('og-desc').setAttribute('content', tag || name);
@@ -196,7 +183,6 @@ const populateHero = () => {
   document.getElementById('stat-products').textContent   = products.length;
   document.getElementById('stat-categories').textContent = categories.length;
 
-  // Contact button in hero
   const contactBtn = document.getElementById('hero-contact');
   const phone = shopInfo.phone;
 
@@ -213,7 +199,6 @@ const populateHero = () => {
 const populateContact = () => {
   const phone = shopInfo.phone;
 
-  // Header WhatsApp button
   const headerBtn = document.getElementById('header-wa-btn');
   if (phone) {
     headerBtn.href = waLink(phone, 'Hello! I would like to inquire about your products.');
@@ -223,7 +208,6 @@ const populateContact = () => {
     headerBtn.hidden = true;
   }
 
-  // Floating FAB
   const fab = document.getElementById('wa-fab');
   if (phone) {
     fab.href = waLink(phone, 'Hello! I would like to inquire about your products.');
@@ -258,7 +242,6 @@ const populateCategories = () => {
       btn.classList.add('active');
       activeCategory = btn.dataset.cat || '';
       render();
-      // Scroll to products on mobile
       if (window.innerWidth < 700) {
         document.querySelector('.toolbar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -273,7 +256,6 @@ const populateFooter = () => {
   document.getElementById('footer-tag').textContent =
     shopInfo.description || 'Quality products, honest prices.';
 
-  // Contact column
   const contact = document.getElementById('footer-contact');
   const contactItems = [];
   if (shopInfo.phone) {
@@ -293,14 +275,12 @@ const populateFooter = () => {
   }
   contact.innerHTML = contactItems.join('') || '<div class="footer-static">—</div>';
 
-  // Categories column (top 6)
   const catCol = document.getElementById('footer-categories');
   const topCats = categories.slice(0, 6);
   catCol.innerHTML = topCats.map((c) => `
     <a href="#" data-footer-cat="${escapeHtml(c.name)}">${escapeHtml(c.name)}</a>
   `).join('') || '<div class="footer-static">—</div>';
 
-  // Wire footer category clicks
   catCol.querySelectorAll('[data-footer-cat]').forEach((a) => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
@@ -313,7 +293,6 @@ const populateFooter = () => {
     });
   });
 
-  // Follow column — website + WhatsApp group + shop WhatsApp
   const follow = document.getElementById('footer-follow');
   const followItems = [];
 
@@ -340,7 +319,6 @@ const populateFooter = () => {
   }
   follow.innerHTML = followItems.join('') || '<div class="footer-static">—</div>';
 
-  // Bottom bar
   const year = new Date().getFullYear();
   document.getElementById('footer-bottom').textContent =
     `© ${year} ${name}. All rights reserved.`;
@@ -352,7 +330,6 @@ const populateFooter = () => {
 // ==========================================================================
 
 const wireEvents = () => {
-  // Search
   const searchInput = document.getElementById('search-input');
   const searchClear = document.getElementById('search-clear');
 
@@ -370,18 +347,15 @@ const wireEvents = () => {
     searchInput.focus();
   });
 
-  // Sort
   document.getElementById('sort-select').addEventListener('change', (e) => {
     sortMode = e.target.value;
     render();
   });
 
-  // Hero CTA scroll
   document.getElementById('hero-cta').addEventListener('click', () => {
     document.querySelector('.container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  // Modal close
   document.getElementById('modal-close').addEventListener('click', closeModal);
 
   document.getElementById('modal').addEventListener('click', (e) => {
@@ -397,12 +371,10 @@ const wireEvents = () => {
 const getFiltered = () => {
   let list = products.slice();
 
-  // Category filter
   if (activeCategory) {
     list = list.filter((p) => p.category === activeCategory);
   }
 
-  // Search
   if (searchTerm) {
     list = list.filter((p) => {
       const hay = [
@@ -415,7 +387,6 @@ const getFiltered = () => {
     });
   }
 
-  // Sort
   switch (sortMode) {
     case 'price-asc':
       list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
@@ -427,7 +398,6 @@ const getFiltered = () => {
       list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
       break;
     default:
-      // 'featured' — keep original order
       break;
   }
 
@@ -444,7 +414,6 @@ const render = () => {
   const content = document.getElementById('content');
   const filtered = getFiltered();
 
-  // Update result count
   const total = products.length;
   const shown = filtered.length;
   const rc = document.getElementById('result-count');
@@ -453,7 +422,6 @@ const render = () => {
     : `<strong>${shown}</strong> of ${total} products`;
 
 
-  // Empty state
   if (filtered.length === 0) {
     content.className = 'empty';
     content.innerHTML = `
@@ -467,14 +435,10 @@ const render = () => {
   }
 
 
-  // Render grid
   content.className = '';
   content.innerHTML = `
     <div class="product-grid">
       ${filtered.map((p) => {
-        const wa = shopInfo.phone
-          ? waLink(shopInfo.phone, orderMessage(p))
-          : '#';
         const waClickable = !!shopInfo.phone;
 
         return `
@@ -511,10 +475,8 @@ const render = () => {
   `;
 
 
-  // Attach card click → open modal
   content.querySelectorAll('.product').forEach((card) => {
     card.addEventListener('click', (e) => {
-      // If the quick WhatsApp button was clicked, don't open the modal
       if (e.target.closest('.quick-wa')) return;
       const id = card.dataset.id;
       const product = products.find((p) => String(p.id) === String(id));
@@ -523,7 +485,6 @@ const render = () => {
   });
 
 
-  // Attach quick WhatsApp handlers
   content.querySelectorAll('.quick-wa').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -542,59 +503,90 @@ const render = () => {
 // ==========================================================================
 
 const openModal = (product) => {
-  document.getElementById('modal-img').src = imageUrl(product);
-  document.getElementById('modal-img').alt = product.name || '';
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const hasValue = value !== null && value !== undefined && String(value).trim() !== '';
+    el.textContent = hasValue ? String(value) : '—';
+  };
+
+  const setHidden = (id, hide) => {
+    const el = document.getElementById(id);
+    if (el) el.hidden = hide;
+  };
+
+  const img = document.getElementById('modal-img');
+  if (img) {
+    img.src = imageUrl(product);
+    img.alt = product.name || '';
+  }
 
   const badge = document.getElementById('modal-badge');
-  badge.textContent = stockLabel(product.stockStatus);
-  badge.className = 'modal-badge ' + stockClass(product.stockStatus);
+  if (badge) {
+    badge.textContent = stockLabel(product.stockStatus);
+    badge.className = 'modal-badge ' + stockClass(product.stockStatus);
+  }
 
-  document.getElementById('modal-cat').textContent = product.category || '';
-  document.getElementById('modal-cat').hidden = !product.category;
+  const cat = document.getElementById('modal-cat');
+  if (cat) {
+    const hasCat = !!(product.category && String(product.category).trim());
+    cat.textContent = hasCat ? product.category : '';
+    cat.hidden = !hasCat;
+  }
 
-  document.getElementById('modal-name').textContent = product.name || '';
+  setText('modal-name', product.name);
 
   const brandEl = document.getElementById('modal-brand');
-  brandEl.textContent = product.brand || '';
-  brandEl.hidden = !product.brand;
+  if (brandEl) {
+    const hasBrand = !!(product.brand && String(product.brand).trim());
+    brandEl.textContent = hasBrand ? product.brand : '';
+    brandEl.hidden = !hasBrand;
+  }
 
-  document.getElementById('modal-price').textContent = formatPrice(product.price);
-  document.getElementById('modal-sku').textContent = product.sku || '—';
-  document.getElementById('modal-unit').textContent = product.unit || '—';
-  document.getElementById('modal-status').textContent = stockLabel(product.stockStatus);
+  setText('modal-price', formatPrice(product.price));
+  setText('modal-sku',    product.sku);
+  setText('modal-unit',   product.unit);
+  setText('modal-status', stockLabel(product.stockStatus));
 
-  // WhatsApp order
   const orderBtn = document.getElementById('modal-order-btn');
-  if (shopInfo.phone) {
-    orderBtn.href = waLink(shopInfo.phone, orderMessage(product));
-    orderBtn.target = '_blank';
-    orderBtn.rel = 'noopener noreferrer';
-    orderBtn.hidden = false;
-  } else {
-    orderBtn.hidden = true;
+  if (orderBtn) {
+    if (shopInfo.phone) {
+      orderBtn.href = waLink(shopInfo.phone, orderMessage(product));
+      orderBtn.target = '_blank';
+      orderBtn.rel = 'noopener noreferrer';
+      orderBtn.hidden = false;
+    } else {
+      orderBtn.hidden = true;
+    }
   }
 
-  // Call button
   const callBtn = document.getElementById('modal-call-btn');
-  if (shopInfo.phone) {
-    callBtn.href = 'tel:' + shopInfo.phone;
-    callBtn.hidden = false;
-  } else {
-    callBtn.hidden = true;
+  if (callBtn) {
+    if (shopInfo.phone) {
+      callBtn.href = 'tel:' + shopInfo.phone;
+      callBtn.hidden = false;
+    } else {
+      callBtn.hidden = true;
+    }
   }
 
-  document.getElementById('modal').hidden = false;
-  document.body.style.overflow = 'hidden';
+  const modal = document.getElementById('modal');
+  if (modal) {
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
 };
 
 const closeModal = () => {
-  document.getElementById('modal').hidden = true;
+  const modal = document.getElementById('modal');
+  if (modal) modal.hidden = true;
   document.body.style.overflow = '';
 };
 
 
 // ==========================================================================
-// GLOBAL HELPER FOR EMPTY STATE BUTTON
+// GLOBAL HELPER
 // ==========================================================================
 
 window.clearAllFilters = () => {
