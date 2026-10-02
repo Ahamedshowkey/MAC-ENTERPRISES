@@ -3,200 +3,302 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#f5f2ed" />
 
   <title>Loading…</title>
   <meta name="description" id="meta-desc" content="Browse our products" />
 
-  <meta property="og:title" id="og-title" content="Our Shop" />
-  <meta property="og:description" id="og-desc" content="Browse our products" />
-  <meta property="og:type" content="website" />
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- ══════════ HEADER ══════════ -->
-  <header class="site-header">
-    <div class="header-inner">
-      <a href="#" class="brand" id="brand">
-        <div class="brand-mark" id="brand-mark">M</div>
-        <div class="brand-text">
-          <div class="brand-name" id="shop-name">Loading…</div>
-          <div class="brand-tag" id="shop-tag"></div>
-        </div>
+  <!-- ══════════ TICKER ══════════ -->
+  <div class="ticker">
+    <div class="ticker-track" id="ticker-track"></div>
+  </div>
+
+
+  <!-- ══════════ NAV ══════════ -->
+  <nav class="nav">
+    <div class="nav-inner">
+
+      <div class="nav-left">
+        <a href="#" class="nav-link" id="nav-call-link" hidden>Call</a>
+        <a href="#" class="nav-link" id="nav-wa-link" hidden>WhatsApp</a>
+      </div>
+
+      <a href="#" class="nav-center">
+        <div class="nav-logo-mark" id="brand-mark">M</div>
+        <div class="nav-logo-name" id="shop-name">Loading…</div>
       </a>
 
-      <div class="search-wrap">
-        <span class="search-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <div class="nav-right">
+        <button class="nav-search-toggle" id="search-toggle" aria-label="Search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.3-4.3"></path>
           </svg>
-        </span>
-        <input id="search-input" type="text" placeholder="Search products…" autocomplete="off" />
-        <button class="search-clear" id="search-clear" aria-label="Clear search" hidden>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <span>Search</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Search overlay -->
+    <div class="search-overlay" id="search-overlay" hidden>
+      <div class="search-overlay-inner">
+        <input id="search-input" type="text" placeholder="What are you looking for?" autocomplete="off" />
+        <button class="search-close" id="search-close" aria-label="Close search">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
             <path d="M18 6 6 18M6 6l12 12"/>
           </svg>
         </button>
       </div>
-
-      <a href="#" class="header-wa-btn" id="header-wa-btn" title="Chat with us on WhatsApp">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
-        </svg>
-        <span>Chat</span>
-      </a>
     </div>
-
-    <div class="category-strip">
-      <div class="category-scroll" id="categories"></div>
-    </div>
-  </header>
+  </nav>
 
 
   <!-- ══════════ HERO ══════════ -->
-  <section class="hero" id="hero">
+  <section class="hero">
     <div class="hero-inner">
-      <div class="hero-badge">🛒 Now Serving Online</div>
-      <h1 class="hero-title" id="hero-title">Welcome</h1>
-      <p class="hero-sub" id="hero-sub"></p>
-      <div class="hero-actions">
-        <button class="hero-cta" id="hero-cta">Browse Products</button>
-        <a href="#" class="hero-secondary" id="hero-contact">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-          </svg>
-          <span id="hero-contact-text">Contact Us</span>
-        </a>
+
+      <div class="hero-meta">
+        <span class="hero-meta-line" id="hero-eyebrow">Established Collection</span>
       </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-num" id="stat-products">—</div>
-          <div class="hero-stat-label">Products</div>
+
+      <h1 class="hero-title">
+        <span id="hero-line-1">Quality goods for</span><br/>
+        <em id="hero-line-2">everyday living.</em>
+      </h1>
+
+      <div class="hero-bottom">
+        <p class="hero-desc" id="hero-sub"></p>
+        <div class="hero-cta-group">
+          <button class="cta-primary" id="hero-cta">
+            Browse catalog
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M7 17 17 7M7 7h10v10"/>
+            </svg>
+          </button>
+          <a href="#" class="cta-secondary" id="hero-contact">
+            <span id="hero-contact-text">Chat with us</span>
+          </a>
         </div>
-        <div class="hero-stat">
-          <div class="hero-stat-num" id="stat-categories">—</div>
-          <div class="hero-stat-label">Categories</div>
-        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ══════════ MARQUEE STRIP ══════════ -->
+  <section class="marquee">
+    <div class="marquee-track" id="marquee-track">
+      <div class="marquee-chunk">
+        <span>Free delivery on bulk orders</span>
+        <span class="marquee-dot">◆</span>
+        <span>Trusted by local builders</span>
+        <span class="marquee-dot">◆</span>
+        <span>Quality guaranteed</span>
+        <span class="marquee-dot">◆</span>
+        <span>Order via WhatsApp</span>
+        <span class="marquee-dot">◆</span>
+        <span>Open 24/7 online</span>
+        <span class="marquee-dot">◆</span>
+      </div>
+      <div class="marquee-chunk" aria-hidden="true">
+        <span>Free delivery on bulk orders</span>
+        <span class="marquee-dot">◆</span>
+        <span>Trusted by local builders</span>
+        <span class="marquee-dot">◆</span>
+        <span>Quality guaranteed</span>
+        <span class="marquee-dot">◆</span>
+        <span>Order via WhatsApp</span>
+        <span class="marquee-dot">◆</span>
+        <span>Open 24/7 online</span>
+        <span class="marquee-dot">◆</span>
       </div>
     </div>
   </section>
 
 
-  <!-- ══════════ TOOLBAR ══════════ -->
-  <div class="toolbar">
-    <div class="toolbar-inner">
-      <div class="result-count" id="result-count">Loading…</div>
-      <div class="toolbar-right">
-        <label class="sort-label">Sort</label>
-        <select class="sort-select" id="sort-select">
-          <option value="featured">Featured</option>
-          <option value="price-asc">Price: Low → High</option>
-          <option value="price-desc">Price: High → Low</option>
-          <option value="name-asc">Name: A → Z</option>
-        </select>
+  <!-- ══════════ CATEGORIES — EDITORIAL LIST ══════════ -->
+  <section class="categories">
+    <div class="categories-inner">
+
+      <div class="categories-head">
+        <div class="section-label">Categories</div>
+        <div class="section-count" id="cat-count-display">—</div>
+      </div>
+
+      <div class="categories-list" id="categories"></div>
+
+    </div>
+  </section>
+
+
+  <!-- ══════════ PRODUCTS ══════════ -->
+  <section class="products">
+    <div class="products-inner">
+
+      <div class="products-head">
+        <h2 class="products-title">
+          <span id="products-title-text">Selected Products</span>
+          <span class="products-count" id="products-count-display"></span>
+        </h2>
+
+        <div class="products-sort">
+          <span class="sort-label">Sort by</span>
+          <select class="sort-select" id="sort-select">
+            <option value="featured">Featured</option>
+            <option value="price-asc">Price ascending</option>
+            <option value="price-desc">Price descending</option>
+            <option value="name-asc">Alphabetical</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="content" class="state-loading">
+        <div class="loader">
+          <div class="loader-line"></div>
+          <div class="loader-text">Loading catalog</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ══════════ BENTO ══════════ -->
+  <section class="bento">
+    <div class="bento-inner">
+
+      <div class="bento-head">
+        <div class="section-label">The experience</div>
+        <h2 class="bento-title">A modern way to shop for <em>construction &amp; home.</em></h2>
+      </div>
+
+      <div class="bento-grid">
+
+        <div class="bento-cell bento-large">
+          <div class="bento-num">01</div>
+          <div class="bento-h">Curated selection</div>
+          <div class="bento-p">Every product is inspected and hand-picked. If we wouldn't use it ourselves, we don't stock it.</div>
+        </div>
+
+        <div class="bento-cell">
+          <div class="bento-num">02</div>
+          <div class="bento-h">Direct pricing</div>
+          <div class="bento-p">No middlemen. Fair prices. Honest margins.</div>
+        </div>
+
+        <div class="bento-cell">
+          <div class="bento-num">03</div>
+          <div class="bento-h">Local delivery</div>
+          <div class="bento-p">Same-week delivery on bulk orders.</div>
+        </div>
+
+        <div class="bento-cell bento-wide">
+          <div class="bento-num">04</div>
+          <div class="bento-h">Order your way</div>
+          <div class="bento-p">Browse, tap, and confirm on WhatsApp — or call the shop directly. We make ordering effortless.</div>
+        </div>
+
       </div>
     </div>
-  </div>
-
-
-  <!-- ══════════ PRODUCT GRID ══════════ -->
-  <main class="container">
-    <div id="content" class="loading">Loading products…</div>
-  </main>
+  </section>
 
 
   <!-- ══════════ FOOTER ══════════ -->
-  <footer class="site-footer">
+  <footer class="footer">
     <div class="footer-inner">
-      <div class="footer-col">
-        <div class="footer-brand" id="footer-brand">Shop</div>
-        <div class="footer-tag" id="footer-tag"></div>
+
+      <div class="footer-top">
+        <div class="footer-big" id="footer-big">Shop</div>
+        <div class="footer-cols">
+          <div class="footer-col">
+            <div class="footer-head">Visit</div>
+            <div class="footer-body" id="footer-visit"></div>
+          </div>
+          <div class="footer-col">
+            <div class="footer-head">Contact</div>
+            <div class="footer-body" id="footer-contact"></div>
+          </div>
+          <div class="footer-col">
+            <div class="footer-head">Categories</div>
+            <div class="footer-body" id="footer-categories"></div>
+          </div>
+        </div>
       </div>
 
-      <div class="footer-col">
-        <div class="footer-head">Contact</div>
-        <div class="footer-list" id="footer-contact"></div>
+      <div class="footer-bottom">
+        <div class="footer-legal" id="footer-legal"></div>
+        <div class="footer-follow" id="footer-follow"></div>
       </div>
 
-      <div class="footer-col">
-        <div class="footer-head">Categories</div>
-        <div class="footer-list" id="footer-categories"></div>
-      </div>
-
-      <div class="footer-col">
-        <div class="footer-head">Follow</div>
-        <div class="footer-list" id="footer-follow"></div>
-      </div>
     </div>
-    <div class="footer-bottom" id="footer-bottom"></div>
   </footer>
 
 
-  <!-- ══════════ FLOATING WHATSAPP ══════════ -->
-  <a href="#" class="wa-fab" id="wa-fab" title="Chat on WhatsApp">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
-    </svg>
-  </a>
+  <!-- ══════════ MODAL ══════════ -->
+  <div class="modal-bg" id="modal" hidden>
+    <div class="modal-card">
 
-
-  <!-- ══════════ PRODUCT MODAL ══════════ -->
-  <div class="modal-backdrop" id="modal" hidden>
-    <div class="modal" id="modal-content">
-      <button class="modal-close" id="modal-close" aria-label="Close">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <button class="modal-x" id="modal-close" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
           <path d="M18 6 6 18M6 6l12 12"/>
         </svg>
       </button>
 
-      <div class="modal-body">
-        <div class="modal-image">
-          <img id="modal-img" alt="" />
-          <span class="modal-badge" id="modal-badge"></span>
+      <div class="modal-grid">
+
+        <div class="modal-left">
+          <div class="modal-img-wrap">
+            <img id="modal-img" alt="" />
+          </div>
+          <div class="modal-status" id="modal-badge"></div>
         </div>
 
-        <div class="modal-details">
+        <div class="modal-right">
           <div class="modal-cat" id="modal-cat"></div>
-          <h2 class="modal-name" id="modal-name"></h2>
+
+          <h2 class="modal-h" id="modal-name"></h2>
+
           <div class="modal-brand" id="modal-brand"></div>
 
           <div class="modal-price" id="modal-price"></div>
 
-          <div class="modal-meta">
-            <div class="modal-meta-row">
-              <span>SKU</span><strong id="modal-sku">—</strong>
+          <div class="modal-facts">
+            <div class="fact">
+              <div class="fact-lbl">Reference</div>
+              <div class="fact-val" id="modal-sku">—</div>
             </div>
-            <div class="modal-meta-row">
-              <span>Unit</span><strong id="modal-unit">—</strong>
+            <div class="fact">
+              <div class="fact-lbl">Unit</div>
+              <div class="fact-val" id="modal-unit">—</div>
             </div>
-            <div class="modal-meta-row">
-              <span>Status</span><strong id="modal-status">—</strong>
+            <div class="fact">
+              <div class="fact-lbl">Availability</div>
+              <div class="fact-val" id="modal-status">—</div>
             </div>
           </div>
 
           <div class="modal-actions">
-            <a href="#" class="btn-wa" id="modal-order-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
-              </svg>
+            <a href="#" class="modal-btn-primary" id="modal-order-btn">
               <span>Order on WhatsApp</span>
-            </a>
-
-            <a href="#" class="btn-call" id="modal-call-btn" hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M7 17 17 7M7 7h10v10"/>
               </svg>
-              <span>Call Shop</span>
+            </a>
+            <a href="#" class="modal-btn-secondary" id="modal-call-btn" hidden>
+              Call the shop
             </a>
           </div>
         </div>
+
       </div>
     </div>
   </div>
