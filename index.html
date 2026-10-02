@@ -24,7 +24,7 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           Open 8 AM – 6 PM
         </span>
-        <span class="util-item" id="util-loc">
+        <span class="util-item util-loc" id="util-loc">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span id="util-loc-text">Visit our yard</span>
         </span>
@@ -51,7 +51,7 @@
         </div>
         <div class="logo-text">
           <div class="logo-name" id="shop-name">Loading…</div>
-          <div class="logo-tag" id="shop-tag">Hardware & Supplies</div>
+          <div class="logo-tag" id="shop-tag">Hardware &amp; Supplies</div>
         </div>
       </a>
 
@@ -84,6 +84,44 @@
       </div>
 
     </div>
+
+    <!-- ══════════ MAIN MENU ══════════ -->
+    <nav class="mainmenu">
+      <div class="mainmenu-inner">
+        <div class="mainmenu-scroll">
+
+          <a href="#" class="menu-item" data-action="home">Home</a>
+
+          <div class="menu-item menu-dropdown" data-dropdown="departments">
+            <span>All Departments</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+            <div class="menu-panel" id="departments-panel"></div>
+          </div>
+
+          <a href="#" class="menu-item" data-action="offers">
+            Special Offers
+            <span class="menu-badge">HOT</span>
+          </a>
+
+          <div class="menu-item menu-dropdown" data-dropdown="brands">
+            <span>Shop by Brands</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+            <div class="menu-panel" id="brands-panel"></div>
+          </div>
+
+          <a href="#" class="menu-item" data-action="diy">DIY Advice</a>
+          <a href="#" class="menu-item" data-action="about">About Us</a>
+          <a href="#" class="menu-item" data-action="services">Services</a>
+          <a href="#" class="menu-item" data-action="contact">Contact Us</a>
+          <a href="#" class="menu-item" data-action="blogs">Blogs</a>
+
+        </div>
+      </div>
+    </nav>
 
     <!-- ══════════ CATEGORY BAR ══════════ -->
     <nav class="catbar">
@@ -368,6 +406,8 @@
       </div>
     </div>
   </div>
+
+  <div class="toast-wrap" id="toast-wrap"></div>
 
   <script src="app.js"></script>
 </body>
