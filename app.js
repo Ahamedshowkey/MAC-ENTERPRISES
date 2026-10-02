@@ -19,6 +19,29 @@ const setText = (id, value) => {
 
 
 // ==========================================================================
+// TOAST
+// ==========================================================================
+
+const showToast = (message, icon = 'ℹ️', duration = 3000) => {
+  const wrap = $('toast-wrap');
+  if (!wrap) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <span class="toast-icon">${icon}</span>
+    <span>${message}</span>
+  `;
+  wrap.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('out');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+};
+
+
+// ==========================================================================
 // UTILITIES
 // ==========================================================================
 
@@ -46,18 +69,10 @@ const stockLabel = (s) => s === 'out' ? 'Out of Stock' : s === 'low' ? 'Low Stoc
 const unitLabel = (u) => {
   if (!u) return '';
   const map = {
-    piece: 'per piece',
-    meter: 'per metre',
-    kg: 'per kg',
-    gram: 'per gram',
-    box: 'per box',
-    packet: 'per packet',
-    roll: 'per roll',
-    set: 'per set',
-    bottle: 'per bottle',
-    liter: 'per litre',
-    pcs: 'per piece',
-    unit: 'per unit'
+    piece: 'per piece', pcs: 'per piece', unit: 'per unit',
+    meter: 'per metre', kg: 'per kg', gram: 'per gram',
+    box: 'per box', packet: 'per packet', roll: 'per roll',
+    set: 'per set', bottle: 'per bottle', liter: 'per litre'
   };
   return map[String(u).toLowerCase()] || `per ${u}`;
 };
@@ -168,6 +183,7 @@ const init = async () => {
   populateCategoryBar();
   populateFooter();
   wireEvents();
+  wireMainMenu();
 
   render();
 
@@ -199,7 +215,6 @@ const populateHero = () => {
 
   setText('hero-sub', tag);
 
-  // Stat counters
   animateNum('stat-products', products.length);
   animateNum('stat-categories', categories.length);
 
@@ -215,7 +230,6 @@ const populateHero = () => {
     contactBtn.hidden = true;
   }
 
-  // Bulk CTA
   const bulkCta = $('bulk-cta');
   if (phone && bulkCta) {
     bulkCta.href = waLink(phone,
@@ -371,6 +385,178 @@ const populateFooter = () => {
 
 
 // ==========================================================================
+// MAIN MENU WIRING
+// ==========================================================================
+
+const wireMainMenu = () => {
+
+  const menuItems = document.querySelectorAll('.menu-item');
+
+  buildDepartmentsPanel();
+  buildBrandsPanel();
+
+  menuItems.forEach((item) => {
+
+    // Dropdown toggle
+    if (item.classList.contains('menu-dropdown')) {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.menu-dropdown').forEach((d) => d.classList.remove('open'));
+        if (!wasOpen) item.classList.add('open');
+      });
+      return;
+    }
+
+    // Regular links
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleMenuAction(item.dataset.action);
+    });
+  });
+
+  // Close on outside click
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.menu-dropdown').forEach((d) => d.classList.remove('open'));
+  });
+
+  // Prevent clicks inside panel from closing
+  document.querySelectorAll('.menu-panel').forEach((p) => {
+    p.addEventListener('click', (e) => e.stopPropagation());
+  });
+};
+
+const buildDepartmentsPanel = () => {
+  const panel = $('departments-panel');
+  if (!panel) return;
+
+  if (!categories || categories.length === 0) {
+    panel.innerHTML = `
+      <div class="menu-panel-head">All Departments</div>
+      <div class="menu-panel-empty">No departments yet</div>
+    `;
+    return;
+  }
+
+  const items = categories.map((c) => `
+    <div class="menu-panel-item" data-cat="${escapeHtml(c.name)}">
+      <span>${escapeHtml(c.name)}</span>
+      <span class="menu-panel-item-count">${c.count}</span>
+    </div>
+  `).join('');
+
+  panel.innerHTML = `
+    <div class="menu-panel-head">All Departments</div>
+    ${items}
+  `;
+
+  panel.querySelectorAll('.menu-panel-item').forEach((el) => {
+    el.addEventListener('click', () => {
+      const cat = el.dataset.cat;
+      const targetTab = document.querySelector(`.cat-tab[data-cat="${CSS.escape(cat)}"]`);
+      if (targetTab) targetTab.click();
+      document.querySelectorAll('.menu-dropdown').forEach((d) => d.classList.remove('open'));
+    });
+  });
+};
+
+const buildBrandsPanel = () => {
+  const panel = $('brands-panel');
+  if (!panel) return;
+
+  const brandMap = new Map();
+  products.forEach((p) => {
+    const b = (p.brand || '').trim();
+    if (!b) return;
+    brandMap.set(b, (brandMap.get(b) || 0) + 1);
+  });
+
+  const brands = Array.from(brandMap.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+
+  if (brands.length === 0) {
+    panel.innerHTML = `
+      <div class="menu-panel-head">Shop by Brands</div>
+      <div class="menu-panel-empty">No brands listed yet</div>
+    `;
+    return;
+  }
+
+  const items = brands.map((b) => `
+    <div class="menu-panel-item" data-brand="${escapeHtml(b.name)}">
+      <span>${escapeHtml(b.name)}</span>
+      <span class="menu-panel-item-count">${b.count}</span>
+    </div>
+  `).join('');
+
+  panel.innerHTML = `
+    <div class="menu-panel-head">Shop by Brands</div>
+    ${items}
+  `;
+
+  panel.querySelectorAll('.menu-panel-item').forEach((el) => {
+    el.addEventListener('click', () => {
+      const brand = el.dataset.brand;
+      const searchInput = $('search-input');
+      if (searchInput) {
+        searchInput.value = brand;
+        searchTerm = brand.toLowerCase();
+        render();
+      }
+      document.querySelectorAll('.menu-dropdown').forEach((d) => d.classList.remove('open'));
+      document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+};
+
+const handleMenuAction = (action) => {
+  switch (action) {
+    case 'home':
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      break;
+
+    case 'offers': {
+      const offerCount = products.filter(
+        (p) => p.stockStatus === 'low' || p.stockStatus === 'out'
+      ).length;
+
+      if (offerCount > 0) {
+        showToast(`${offerCount} product${offerCount === 1 ? '' : 's'} on special`, '🔥');
+        document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        showToast('Special offers coming soon', '🔥');
+      }
+      break;
+    }
+
+    case 'diy':
+      showToast('DIY advice section coming soon', '🛠️');
+      break;
+
+    case 'about':
+      showToast('About us page coming soon', '📖');
+      break;
+
+    case 'services':
+      showToast('Services page coming soon', '⚙️');
+      break;
+
+    case 'contact':
+      document.querySelector('.footer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      break;
+
+    case 'blogs':
+      showToast('Blog coming soon', '📝');
+      break;
+
+    default:
+      break;
+  }
+};
+
+
+// ==========================================================================
 // EVENTS
 // ==========================================================================
 
@@ -515,7 +701,6 @@ const render = () => {
     </div>
   `;
 
-  // Card click → modal
   content.querySelectorAll('.card').forEach((card) => {
     card.addEventListener('click', (e) => {
       if (e.target.closest('.card-wa')) return;
@@ -525,7 +710,6 @@ const render = () => {
     });
   });
 
-  // Quick WA
   content.querySelectorAll('.card-wa').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -623,7 +807,7 @@ const closeModal = () => {
 
 
 // ==========================================================================
-// GLOBAL
+// GLOBAL HELPER
 // ==========================================================================
 
 window.clearAllFilters = () => {
@@ -645,5 +829,10 @@ window.clearAllFilters = () => {
 
   render();
 };
+
+
+// ==========================================================================
+// BOOT
+// ==========================================================================
 
 init();
