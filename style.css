@@ -5,19 +5,16 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Neutrals */
   --bg: #f5f7fa;
   --surface: #ffffff;
   --surface-2: #f9fafb;
   --border: #e5e7eb;
   --border-strong: #d1d5db;
 
-  /* Text */
   --text: #0f172a;
   --text-muted: #64748b;
   --text-faint: #94a3b8;
 
-  /* Brand */
   --primary: #2563eb;
   --primary-dark: #1d4ed8;
   --primary-light: #eff6ff;
@@ -26,16 +23,13 @@
   --navy: #0f172a;
   --navy-2: #1e293b;
 
-  /* Status */
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
 
-  /* WhatsApp */
   --wa: #25d366;
   --wa-dark: #1eb558;
 
-  /* Shadows */
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
   --shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
   --shadow-md: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
@@ -61,6 +55,9 @@ body {
 img { max-width: 100%; display: block; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 a { color: inherit; text-decoration: none; }
+
+/* ⬇️ CRITICAL — makes the `hidden` attribute actually hide elements */
+[hidden] { display: none !important; }
 
 
 /* ══════════════════════════════════════════
@@ -195,7 +192,6 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 6px 14px -4px rgba(37, 211, 102, 0.55);
 }
 
-/* Category strip */
 .category-strip {
   border-top: 1px solid var(--border);
   background: var(--surface);
@@ -442,7 +438,6 @@ a { color: inherit; text-decoration: none; }
   gap: 22px;
 }
 
-/* ─── Product card ─── */
 .product {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -586,7 +581,6 @@ a { color: inherit; text-decoration: none; }
   transform: translateX(3px);
 }
 
-/* Loading + empty states */
 .loading, .empty {
   text-align: center;
   padding: 80px 20px;
@@ -728,6 +722,12 @@ a { color: inherit; text-decoration: none; }
   z-index: 100;
   animation: fade-in 0.2s ease;
 }
+
+/* ⬇️ CRITICAL FIX — when `hidden` is set, hide the modal */
+.modal-backdrop[hidden] {
+  display: none !important;
+}
+
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slide-up { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
