@@ -207,6 +207,44 @@ const populateBrand = () => {
 
   const meta = $('meta-desc');
   if (meta) meta.setAttribute('content', tag);
+
+  // Render logo (header + footer)
+  renderLogo();
+};
+
+const renderLogo = () => {
+  const logo = shopInfo.logo;
+
+  // Header logo
+  const headerImg = $('logo-img');
+  const headerSvg = $('logo-svg');
+  const headerMark = $('logo-mark');
+
+  if (logo && headerImg && headerSvg) {
+    headerImg.src = logo;
+    headerImg.alt = shopInfo.shopName || 'Logo';
+    headerImg.hidden = false;
+    headerSvg.hidden = true;
+    if (headerMark) {
+      headerMark.style.background = 'transparent';
+      headerMark.style.boxShadow = 'none';
+    }
+  }
+
+  // Footer logo
+  const footerImg = $('footer-logo-img');
+  const footerSvg = $('footer-logo-svg');
+  const footerMark = $('footer-mark');
+
+  if (logo && footerImg && footerSvg) {
+    footerImg.src = logo;
+    footerImg.alt = shopInfo.shopName || 'Logo';
+    footerImg.hidden = false;
+    footerSvg.hidden = true;
+    if (footerMark) {
+      footerMark.style.background = 'transparent';
+    }
+  }
 };
 
 const populateHero = () => {
@@ -393,7 +431,6 @@ const wireMainMenu = () => {
   const menuItems = document.querySelectorAll('.menu-item');
 
   buildDepartmentsPanel();
-  buildBrandsPanel();
 
   menuItems.forEach((item) => {
 
@@ -460,56 +497,6 @@ const buildDepartmentsPanel = () => {
   });
 };
 
-const buildBrandsPanel = () => {
-  const panel = $('brands-panel');
-  if (!panel) return;
-
-  const brandMap = new Map();
-  products.forEach((p) => {
-    const b = (p.brand || '').trim();
-    if (!b) return;
-    brandMap.set(b, (brandMap.get(b) || 0) + 1);
-  });
-
-  const brands = Array.from(brandMap.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
-
-  if (brands.length === 0) {
-    panel.innerHTML = `
-      <div class="menu-panel-head">Shop by Brands</div>
-      <div class="menu-panel-empty">No brands listed yet</div>
-    `;
-    return;
-  }
-
-  const items = brands.map((b) => `
-    <div class="menu-panel-item" data-brand="${escapeHtml(b.name)}">
-      <span>${escapeHtml(b.name)}</span>
-      <span class="menu-panel-item-count">${b.count}</span>
-    </div>
-  `).join('');
-
-  panel.innerHTML = `
-    <div class="menu-panel-head">Shop by Brands</div>
-    ${items}
-  `;
-
-  panel.querySelectorAll('.menu-panel-item').forEach((el) => {
-    el.addEventListener('click', () => {
-      const brand = el.dataset.brand;
-      const searchInput = $('search-input');
-      if (searchInput) {
-        searchInput.value = brand;
-        searchTerm = brand.toLowerCase();
-        render();
-      }
-      document.querySelectorAll('.menu-dropdown').forEach((d) => d.classList.remove('open'));
-      document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  });
-};
-
 const handleMenuAction = (action) => {
   switch (action) {
     case 'home':
@@ -530,10 +517,6 @@ const handleMenuAction = (action) => {
       break;
     }
 
-    case 'diy':
-      showToast('DIY advice section coming soon', '🛠️');
-      break;
-
     case 'about':
       showToast('About us page coming soon', '📖');
       break;
@@ -544,10 +527,6 @@ const handleMenuAction = (action) => {
 
     case 'contact':
       document.querySelector('.footer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      break;
-
-    case 'blogs':
-      showToast('Blog coming soon', '📝');
       break;
 
     default:
