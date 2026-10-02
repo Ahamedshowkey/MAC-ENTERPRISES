@@ -1,5 +1,5 @@
 // ==========================================================================
-// EDITORIAL COMMERCE — APP LOGIC
+// EDITORIAL COMMERCE — APP LOGIC (hardened)
 // ==========================================================================
 
 let products = [];
@@ -9,6 +9,54 @@ let activeCategory = '';
 let searchTerm = '';
 let sortMode = 'featured';
 let currencySymbol = 'Rs.';
+
+
+// ==========================================================================
+// DOM SAFETY HELPERS
+// ==========================================================================
+
+/** Get element or null */
+const $ = (id) => document.getElementById(id);
+
+/** Safely set textContent */
+const setText = (id, value) => {
+  const el = $(id);
+  if (!el) return false;
+  el.textContent = value == null ? '' : String(value);
+  return true;
+};
+
+/** Safely set an attribute */
+const setAttr = (id, attr, value) => {
+  const el = $(id);
+  if (!el) return false;
+  el.setAttribute(attr, value);
+  return true;
+};
+
+/** Safely set innerHTML */
+const setHtml = (id, html) => {
+  const el = $(id);
+  if (!el) return false;
+  el.innerHTML = html;
+  return true;
+};
+
+/** Safely set hidden */
+const setHidden = (id, hidden) => {
+  const el = $(id);
+  if (!el) return false;
+  el.hidden = !!hidden;
+  return true;
+};
+
+/** Safely set href */
+const setHref = (id, href) => {
+  const el = $(id);
+  if (!el) return false;
+  el.href = href;
+  return true;
+};
 
 
 // ==========================================================================
@@ -37,11 +85,11 @@ const stockClass = (s) => s === 'out' ? 'out' : s === 'low' ? 'low' : '';
 const stockLabel = (s) => s === 'out' ? 'Out of stock' : s === 'low' ? 'Low stock' : 'In stock';
 
 const imageUrl = (p) => {
-  if (p.image) return p.image;
-  const initial = (p.name || '?').charAt(0).toUpperCase();
+  if (p && p.image) return p.image;
+  const initial = ((p && p.name) || '?').charAt(0).toUpperCase();
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">
     <rect width="400" height="500" fill="#ebe6df"/>
-    <text x="200" y="270" font-family="Instrument Serif,Georgia,serif" font-style="italic" font-size="180" fill="#a3a3a3" text-anchor="middle">${initial}</text>
+    <text x="200" y="270" font-family="Georgia,serif" font-style="italic" font-size="180" fill="#a3a3a3" text-anchor="middle">${initial}</text>
   </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 };
@@ -93,10 +141,81 @@ const orderMessage = (product) => [
 
 
 // ==========================================================================
+// SANITY CHECK — warns about missing elements
+// ==========================================================================
+
+const REQUIRED_IDS = [
+  'ticker-track',
+  'shop-name',
+  'brand-mark',
+  'hero-sub',
+  'hero-cta',
+  'hero-contact',
+  'hero-contact-text',
+  'nav-call-link',
+  'nav-wa-link',
+  'search-toggle',
+  'search-overlay',
+  'search-input',
+  'search-close',
+  'sort-select',
+  'categories',
+  'cat-count-display',
+  'products-title-text',
+  'products-count-display',
+  'content',
+  'footer-big',
+  'footer-visit',
+  'footer-contact',
+  'footer-categories',
+  'footer-legal',
+  'footer-follow',
+  'modal',
+  'modal-close',
+  'modal-img',
+  'modal-badge',
+  'modal-cat',
+  'modal-name',
+  'modal-brand',
+  'modal-price',
+  'modal-sku',
+  'modal-unit',
+  'modal-status',
+  'modal-order-btn',
+  'modal-call-btn'
+];
+
+const checkDom = () => {
+  const missing = REQUIRED_IDS.filter((id) => !document.getElementById(id));
+  if (missing.length > 0) {
+    console.error(
+      '%c⚠️ SHOP PAGE — MISSING ELEMENTS',
+      'color:#f43f5e;font-weight:700;font-size:14px'
+    );
+    console.error(
+      'These IDs are in app.js but not in index.html. ' +
+      'You likely need to replace index.html with the latest version.'
+    );
+    console.error('Missing:', missing);
+  } else {
+    console.log('%c✓ Shop page DOM verified — all elements present.',
+      'color:#10b981;font-weight:600');
+  }
+  return missing;
+};
+
+
+// ==========================================================================
 // INIT
 // ==========================================================================
 
 const init = async () => {
+
+  // Check HTML structure first
+  const missing = checkDom();
+  if (missing.length > 0) {
+    // Still try to continue in case only optional items are missing
+  }
 
   const [loadedProducts, loadedCategories, loadedShop] = await Promise.all([
     loadJSON('products.json', []),
@@ -110,7 +229,7 @@ const init = async () => {
 
   currencySymbol = shopInfo.currencySymbol || 'Rs.';
 
-  // If no categories.json, derive from products
+  // Derive categories from products if empty
   if (categories.length === 0 && products.length > 0) {
     const map = new Map();
     products.forEach((p) => {
@@ -162,9 +281,6 @@ const init = async () => {
 // ==========================================================================
 
 const populateTicker = () => {
-  const track = document.getElementById('ticker-track');
-  if (!track) return;
-
   const items = [
     shopInfo.shopName || 'Our shop',
     'Free delivery on bulk',
@@ -172,9 +288,8 @@ const populateTicker = () => {
     'Order via WhatsApp',
     new Date().getFullYear() + ' collection'
   ];
-
   const chunk = items.map((t) => `<span class="ticker-item">${escapeHtml(t)}</span>`).join('');
-  track.innerHTML = chunk + chunk;
+  setHtml('ticker-track', chunk + chunk);
 };
 
 const populateBrand = () => {
@@ -182,60 +297,58 @@ const populateBrand = () => {
   const tag  = shopInfo.description || '';
 
   document.title = name + ' — Products';
-  document.getElementById('shop-name').textContent = name;
 
-  const initial = name.trim().charAt(0).toUpperCase() || 'S';
-  document.getElementById('brand-mark').textContent = initial;
-
-  const meta = document.getElementById('meta-desc');
-  if (meta) meta.setAttribute('content', tag || name);
+  setText('shop-name', name);
+  setText('brand-mark', name.trim().charAt(0).toUpperCase() || 'S');
+  setAttr('meta-desc', 'content', tag || name);
+  setAttr('og-title', 'content', name);
 };
 
 const populateHero = () => {
   const tag = shopInfo.description || 'Browse our collection of quality products, available for pickup or delivery.';
-  document.getElementById('hero-sub').textContent = tag;
+  setText('hero-sub', tag);
 
   const phone = shopInfo.phone;
-  const contactBtn = document.getElementById('hero-contact');
-  const ctaText = document.getElementById('hero-contact-text');
+  const contactBtn = $('hero-contact');
 
-  if (phone) {
+  if (phone && contactBtn) {
     contactBtn.href = waLink(phone, 'Hello, I have a question about your products.');
     contactBtn.target = '_blank';
     contactBtn.rel = 'noopener noreferrer';
+    setText('hero-contact-text', 'Chat with us');
   } else {
-    contactBtn.hidden = true;
+    setHidden('hero-contact', true);
   }
 };
 
 const populateContact = () => {
   const phone = shopInfo.phone;
 
-  const navCall = document.getElementById('nav-call-link');
-  const navWa = document.getElementById('nav-wa-link');
-
   if (phone) {
-    navCall.href = 'tel:' + phone;
-    navCall.hidden = false;
+    setHref('nav-call-link', 'tel:' + phone);
+    setHidden('nav-call-link', false);
 
-    navWa.href = waLink(phone, 'Hello, I would like to inquire about your products.');
-    navWa.target = '_blank';
-    navWa.rel = 'noopener noreferrer';
-    navWa.hidden = false;
+    const navWa = $('nav-wa-link');
+    if (navWa) {
+      navWa.href = waLink(phone, 'Hello, I would like to inquire about your products.');
+      navWa.target = '_blank';
+      navWa.rel = 'noopener noreferrer';
+      navWa.hidden = false;
+    }
   }
 };
 
 const populateCategories = () => {
-  const container = document.getElementById('categories');
-  const catCountEl = document.getElementById('cat-count-display');
-
-  if (catCountEl) {
-    catCountEl.textContent = `${categories.length} total`;
+  const container = $('categories');
+  if (!container) {
+    console.warn('Cannot render categories — #categories missing from HTML');
+    return;
   }
+
+  setText('cat-count-display', `${categories.length} total`);
 
   const rows = [];
 
-  // "All" row
   rows.push(`
     <div class="cat-row active" data-cat="">
       <div class="cat-num">00</div>
@@ -249,7 +362,6 @@ const populateCategories = () => {
     </div>
   `);
 
-  // Category rows
   categories.forEach((c, i) => {
     const num = String(i + 1).padStart(2, '0');
     rows.push(`
@@ -275,10 +387,7 @@ const populateCategories = () => {
 
       activeCategory = row.dataset.cat || '';
 
-      const titleEl = document.getElementById('products-title-text');
-      if (titleEl) {
-        titleEl.textContent = activeCategory || 'Selected Products';
-      }
+      setText('products-title-text', activeCategory || 'Selected Products');
 
       render();
 
@@ -291,54 +400,49 @@ const populateCategories = () => {
 
 const populateFooter = () => {
   const name = shopInfo.shopName || 'Our Shop';
-  document.getElementById('footer-big').textContent = name;
+  setText('footer-big', name);
 
   // Visit
-  const visit = document.getElementById('footer-visit');
   const visitItems = [];
-  if (shopInfo.address) {
-    visitItems.push(`<div class="static">${escapeHtml(shopInfo.address)}</div>`);
-  }
-  if (shopInfo.email) {
-    visitItems.push(`<a href="mailto:${escapeHtml(shopInfo.email)}">${escapeHtml(shopInfo.email)}</a>`);
-  }
-  visit.innerHTML = visitItems.join('') || '<div class="static">—</div>';
+  if (shopInfo.address) visitItems.push(`<div class="static">${escapeHtml(shopInfo.address)}</div>`);
+  if (shopInfo.email)   visitItems.push(`<a href="mailto:${escapeHtml(shopInfo.email)}">${escapeHtml(shopInfo.email)}</a>`);
+  setHtml('footer-visit', visitItems.join('') || '<div class="static">—</div>');
 
   // Contact
-  const contact = document.getElementById('footer-contact');
   const contactItems = [];
   if (shopInfo.phone) {
     contactItems.push(`<a href="tel:${escapeHtml(shopInfo.phone)}">${escapeHtml(shopInfo.phone)}</a>`);
     contactItems.push(`<a href="${waLink(shopInfo.phone, 'Hello!')}" target="_blank" rel="noopener noreferrer">WhatsApp chat</a>`);
   }
-  contact.innerHTML = contactItems.join('') || '<div class="static">—</div>';
+  setHtml('footer-contact', contactItems.join('') || '<div class="static">—</div>');
 
   // Categories
-  const catCol = document.getElementById('footer-categories');
   const topCats = categories.slice(0, 5);
-  catCol.innerHTML = topCats.map((c) => `
+  const catHtml = topCats.map((c) => `
     <a href="#" data-footer-cat="${escapeHtml(c.name)}">${escapeHtml(c.name)}</a>
   `).join('') || '<div class="static">—</div>';
+  setHtml('footer-categories', catHtml);
 
-  catCol.querySelectorAll('[data-footer-cat]').forEach((a) => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      const cat = a.dataset.footerCat;
-      const targetRow = document.querySelector(`.cat-row[data-cat="${CSS.escape(cat)}"]`);
-      if (targetRow) {
-        targetRow.click();
-        document.querySelector('.categories')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+  const catCol = $('footer-categories');
+  if (catCol) {
+    catCol.querySelectorAll('[data-footer-cat]').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cat = a.dataset.footerCat;
+        const targetRow = document.querySelector(`.cat-row[data-cat="${CSS.escape(cat)}"]`);
+        if (targetRow) {
+          targetRow.click();
+          document.querySelector('.categories')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
     });
-  });
+  }
 
   // Legal
   const year = new Date().getFullYear();
-  document.getElementById('footer-legal').textContent =
-    `© ${year} ${name} — All rights reserved`;
+  setText('footer-legal', `© ${year} ${name} — All rights reserved`);
 
   // Follow
-  const follow = document.getElementById('footer-follow');
   const followItems = [];
   if (shopInfo.websiteUrl) {
     followItems.push(`<a href="${escapeHtml(shopInfo.websiteUrl)}" target="_blank" rel="noopener noreferrer">Website</a>`);
@@ -346,7 +450,7 @@ const populateFooter = () => {
   if (shopInfo.whatsappGroupUrl) {
     followItems.push(`<a href="${escapeHtml(shopInfo.whatsappGroupUrl)}" target="_blank" rel="noopener noreferrer">WhatsApp Group</a>`);
   }
-  follow.innerHTML = followItems.join('');
+  setHtml('footer-follow', followItems.join(''));
 };
 
 
@@ -355,46 +459,41 @@ const populateFooter = () => {
 // ==========================================================================
 
 const wireEvents = () => {
-  const searchToggle = document.getElementById('search-toggle');
-  const searchOverlay = document.getElementById('search-overlay');
-  const searchInput = document.getElementById('search-input');
-  const searchClose = document.getElementById('search-close');
+  $('search-toggle')?.addEventListener('click', openSearch);
+  $('search-close')?.addEventListener('click', closeSearch);
 
-  searchToggle?.addEventListener('click', openSearch);
-  searchClose?.addEventListener('click', closeSearch);
-
-  searchInput?.addEventListener('input', (e) => {
+  $('search-input')?.addEventListener('input', (e) => {
     searchTerm = e.target.value.trim().toLowerCase();
     render();
   });
 
-  document.getElementById('sort-select').addEventListener('change', (e) => {
+  $('sort-select')?.addEventListener('change', (e) => {
     sortMode = e.target.value;
     render();
   });
 
-  document.getElementById('hero-cta').addEventListener('click', () => {
+  $('hero-cta')?.addEventListener('click', () => {
     document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  document.getElementById('modal-close').addEventListener('click', closeModal);
+  $('modal-close')?.addEventListener('click', closeModal);
 
-  document.getElementById('modal').addEventListener('click', (e) => {
+  $('modal')?.addEventListener('click', (e) => {
     if (e.target.id === 'modal') closeModal();
   });
 };
 
 const openSearch = () => {
-  const overlay = document.getElementById('search-overlay');
-  const input = document.getElementById('search-input');
+  const overlay = $('search-overlay');
+  const input = $('search-input');
   if (!overlay) return;
   overlay.hidden = false;
   setTimeout(() => input?.focus(), 50);
 };
 
 const closeSearch = () => {
-  const overlay = document.getElementById('search-overlay');
-  const input = document.getElementById('search-input');
+  const overlay = $('search-overlay');
+  const input = $('search-input');
   if (!overlay) return;
   overlay.hidden = true;
   if (input && input.value) {
@@ -424,17 +523,10 @@ const getFiltered = () => {
   }
 
   switch (sortMode) {
-    case 'price-asc':
-      list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
-      break;
-    case 'price-desc':
-      list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
-      break;
-    case 'name-asc':
-      list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-      break;
-    default:
-      break;
+    case 'price-asc':  list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0)); break;
+    case 'price-desc': list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0)); break;
+    case 'name-asc':   list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))); break;
+    default: break;
   }
 
   return list;
@@ -447,13 +539,14 @@ const getFiltered = () => {
 
 const render = () => {
 
-  const content = document.getElementById('content');
-  const countDisplay = document.getElementById('products-count-display');
-  const filtered = getFiltered();
-
-  if (countDisplay) {
-    countDisplay.textContent = `(${filtered.length})`;
+  const content = $('content');
+  if (!content) {
+    console.warn('Cannot render — #content missing from HTML');
+    return;
   }
+
+  const filtered = getFiltered();
+  setText('products-count-display', `(${filtered.length})`);
 
   if (filtered.length === 0) {
     content.className = 'state-empty';
@@ -538,47 +631,47 @@ const render = () => {
 
 const openModal = (product) => {
 
-  const setText = (id, value) => {
-    const el = document.getElementById(id);
+  const setVal = (id, value) => {
+    const el = $(id);
     if (!el) return;
     const hasValue = value !== null && value !== undefined && String(value).trim() !== '';
     el.textContent = hasValue ? String(value) : '—';
   };
 
-  const img = document.getElementById('modal-img');
+  const img = $('modal-img');
   if (img) {
     img.src = imageUrl(product);
     img.alt = product.name || '';
   }
 
-  const badge = document.getElementById('modal-badge');
+  const badge = $('modal-badge');
   if (badge) {
     badge.textContent = stockLabel(product.stockStatus);
     badge.className = 'modal-status ' + stockClass(product.stockStatus);
   }
 
-  const cat = document.getElementById('modal-cat');
+  const cat = $('modal-cat');
   if (cat) {
     const hasCat = !!(product.category && String(product.category).trim());
     cat.textContent = hasCat ? product.category : '';
     cat.hidden = !hasCat;
   }
 
-  setText('modal-name', product.name);
+  setVal('modal-name', product.name);
 
-  const brandEl = document.getElementById('modal-brand');
+  const brandEl = $('modal-brand');
   if (brandEl) {
     const hasBrand = !!(product.brand && String(product.brand).trim());
     brandEl.textContent = hasBrand ? product.brand : '';
     brandEl.hidden = !hasBrand;
   }
 
-  setText('modal-price', formatPrice(product.price));
-  setText('modal-sku', product.sku);
-  setText('modal-unit', product.unit);
-  setText('modal-status', stockLabel(product.stockStatus));
+  setVal('modal-price', formatPrice(product.price));
+  setVal('modal-sku', product.sku);
+  setVal('modal-unit', product.unit);
+  setVal('modal-status', stockLabel(product.stockStatus));
 
-  const orderBtn = document.getElementById('modal-order-btn');
+  const orderBtn = $('modal-order-btn');
   if (orderBtn) {
     if (shopInfo.phone) {
       orderBtn.href = waLink(shopInfo.phone, orderMessage(product));
@@ -590,7 +683,7 @@ const openModal = (product) => {
     }
   }
 
-  const callBtn = document.getElementById('modal-call-btn');
+  const callBtn = $('modal-call-btn');
   if (callBtn) {
     if (shopInfo.phone) {
       callBtn.href = 'tel:' + shopInfo.phone;
@@ -600,7 +693,7 @@ const openModal = (product) => {
     }
   }
 
-  const modal = document.getElementById('modal');
+  const modal = $('modal');
   if (modal) {
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
@@ -608,7 +701,7 @@ const openModal = (product) => {
 };
 
 const closeModal = () => {
-  const modal = document.getElementById('modal');
+  const modal = $('modal');
   if (modal) modal.hidden = true;
   document.body.style.overflow = '';
 };
@@ -623,8 +716,8 @@ window.clearAllFilters = () => {
   activeCategory = '';
   sortMode = 'featured';
 
-  const searchInput = document.getElementById('search-input');
-  const sortSelect = document.getElementById('sort-select');
+  const searchInput = $('search-input');
+  const sortSelect = $('sort-select');
 
   if (searchInput) searchInput.value = '';
   if (sortSelect) sortSelect.value = 'featured';
@@ -633,8 +726,7 @@ window.clearAllFilters = () => {
     r.classList.toggle('active', i === 0);
   });
 
-  const titleEl = document.getElementById('products-title-text');
-  if (titleEl) titleEl.textContent = 'Selected Products';
+  setText('products-title-text', 'Selected Products');
 
   render();
 };
