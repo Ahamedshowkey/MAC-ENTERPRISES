@@ -2,13 +2,13 @@
   {
     "id": "6ac11f56c800bdebd3edf2b3",
     "name": "Box Bar 1.5x1.5 (1.1mm)",
-    "price": 2135,
+    "price": 2100,
     "image": "",
     "sku": "BOX-15X15-1P1",
     "brand": "",
     "unit": "bar",
     "category": "Box Bar",
-    "stockStatus": "out"
+    "stockStatus": "in"
   },
   {
     "id": "6ac11f56c800bdebd3edf2b7",
