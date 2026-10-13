@@ -16,20 +16,19 @@
 </head>
 <body>
 
-  <!-- ══════════ SKIP LINK ══════════ -->
   <a href="#products-content" class="skip-link">Skip to products</a>
 
   <!-- ══════════ UTILITY BAR ══════════ -->
   <div class="util" role="complementary" aria-label="Shop information">
     <div class="util-inner">
       <div class="util-left">
-        <span class="util-item" id="util-hours">
+        <span class="util-item">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           Open 8 AM – 6 PM
         </span>
-        <span class="util-item util-loc" id="util-loc">
+        <span class="util-item util-loc">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span id="util-loc-text">Visit our yard</span>
+          <span>Visit our yard</span>
         </span>
       </div>
       <div class="util-right">
@@ -46,7 +45,7 @@
   <header class="header" role="banner">
     <div class="header-inner">
 
-      <a href="#" class="logo" aria-label="Home — MAC Enterprises">
+      <a href="#" class="logo" aria-label="Home">
         <div class="logo-mark" id="logo-mark">
           <img id="logo-img" alt="" hidden />
           <svg id="logo-svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -64,13 +63,7 @@
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.3-4.3"></path>
         </svg>
-        <input
-          id="search-input"
-          type="text"
-          placeholder="Search tools, pipes, paint, cement…"
-          autocomplete="off"
-          aria-label="Search products"
-        />
+        <input id="search-input" type="text" placeholder="Search tools, pipes, paint, cement…" autocomplete="off" aria-label="Search products" />
         <button class="search-clear" id="search-clear" aria-label="Clear search" hidden>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
             <path d="M18 6 6 18M6 6l12 12"/>
@@ -95,11 +88,10 @@
 
     </div>
 
-    <!-- ══════════ MAIN MENU ══════════ -->
+    <!-- MAIN MENU -->
     <nav class="mainmenu" role="navigation" aria-label="Main menu">
       <div class="mainmenu-inner">
         <div class="mainmenu-scroll">
-
           <a href="#" class="menu-item" data-action="home">Home</a>
 
           <div class="menu-item menu-dropdown" data-dropdown="departments" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
@@ -110,20 +102,15 @@
             <div class="menu-panel" id="departments-panel" role="menu"></div>
           </div>
 
-          <a href="#" class="menu-item" data-action="offers">
-            Special Offers
-            <span class="menu-badge">HOT</span>
-          </a>
-
+          <a href="#" class="menu-item" data-action="offers">Special Offers<span class="menu-badge">HOT</span></a>
           <a href="#" class="menu-item" data-action="about">About Us</a>
           <a href="#" class="menu-item" data-action="services">Services</a>
           <a href="#" class="menu-item" data-action="contact">Contact Us</a>
-
         </div>
       </div>
     </nav>
 
-    <!-- ══════════ CATEGORY BAR ══════════ -->
+    <!-- CATEGORY BAR -->
     <nav class="catbar" role="navigation" aria-label="Product categories">
       <div class="catbar-inner">
         <div class="catbar-scroll" id="category-bar" role="tablist"></div>
@@ -184,27 +171,29 @@
         </div>
       </div>
 
-      <!-- Bento grid -->
+      <!-- Bento grid — Free delivery removed -->
       <div class="hero-bento">
         <div class="bento bento-accent bento-wide">
           <span class="bento-number">01</span>
+          <span class="bento-corner bento-corner-tl" aria-hidden="true"></span>
+          <span class="bento-corner bento-corner-br" aria-hidden="true"></span>
           <div class="bento-icon" aria-hidden="true">🔧</div>
           <div class="bento-h">Trade account</div>
           <div class="bento-p">Bulk pricing for contractors &amp; builders. Apply in-store or online.</div>
         </div>
 
-        <div class="bento">
-          <span class="bento-number">02</span>
-          <div class="bento-icon" aria-hidden="true">🚚</div>
-          <div class="bento-h">Free delivery</div>
-          <div class="bento-p">On orders above Rs. 25,000</div>
-        </div>
-
         <div class="bento bento-ink">
-          <span class="bento-number">03</span>
+          <span class="bento-number">02</span>
           <div class="bento-icon" aria-hidden="true">✓</div>
           <div class="bento-h">Quality assured</div>
           <div class="bento-p">Every item inspected before sale</div>
+        </div>
+
+        <div class="bento">
+          <span class="bento-number">03</span>
+          <div class="bento-icon" aria-hidden="true">💬</div>
+          <div class="bento-h">Expert advice</div>
+          <div class="bento-p">Talk to our team about your project</div>
         </div>
       </div>
 
@@ -212,7 +201,7 @@
   </section>
 
 
-  <!-- ══════════ MARQUEE TICKER ══════════ -->
+  <!-- ══════════ MARQUEE ══════════ -->
   <section class="marquee" aria-hidden="true">
     <div class="marquee-track">
       <span class="marquee-item">Call &amp; reserve stock</span>
@@ -227,6 +216,25 @@
       <span class="marquee-item marquee-item-accent">Trade accounts welcome</span>
       <span class="marquee-item">7-day returns</span>
       <span class="marquee-item marquee-item-accent">Open 8 AM – 6 PM</span>
+    </div>
+  </section>
+
+
+  <!-- ══════════ CATEGORY SHOWCASE (NEW) ══════════ -->
+  <section class="showcase" role="region" aria-label="Shop by category">
+    <div class="showcase-inner">
+
+      <div class="showcase-head">
+        <div class="showcase-eyebrow">
+          <span class="showcase-eyebrow-line" aria-hidden="true"></span>
+          <span>01 / Browse the aisles</span>
+        </div>
+        <h2 class="showcase-title">Shop by category</h2>
+        <p class="showcase-sub">Everything you need, sorted by trade — from raw steel to finished fittings.</p>
+      </div>
+
+      <div class="category-grid" id="category-showcase"></div>
+
     </div>
   </section>
 
@@ -261,7 +269,7 @@
   </main>
 
 
-  <!-- ══════════ BULK BANNER ══════════ -->
+  <!-- ══════════ BULK ══════════ -->
   <section class="bulk" role="region" aria-label="Bulk ordering">
     <div class="bulk-inner">
       <div class="bulk-left">
@@ -346,7 +354,6 @@
       </button>
 
       <div class="modal-grid">
-
         <div class="modal-visual">
           <div class="modal-img-wrap">
             <img id="modal-img" alt="" />
