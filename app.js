@@ -1,6 +1,6 @@
 // ==========================================================================
 // HARDWARE SHOP — APP LOGIC
-// Updated with UI UX Pro Max design intelligence
+// Category showcase with auto-generated industrial SVG tiles
 // ==========================================================================
 
 let products = [];
@@ -103,6 +103,84 @@ const loadJSON = async (file, fallback = []) => {
 
 
 // ==========================================================================
+// CATEGORY IMAGE + ICON (auto-generated industrial SVG tiles)
+// ==========================================================================
+
+const CATEGORY_ICONS = {
+  wrench: 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z',
+  pipe:   'M3 12h4a3 3 0 0 1 3 3v6M21 12h-4a3 3 0 0 0-3 3M3 9v6M21 9v6',
+  brick:  'M3 7h18v4H3zM3 15h18v4H3zM11 7v4M7 15v4M15 15v4',
+  bolt:   'M13 2 3 14h8l-1 8 10-12h-8l1-8z',
+  paint:  'M19 3H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM12 13v8M9 21h6',
+  roof:   'M2 12 12 3l10 9M4 12v9h16v-9',
+  bar:    'M4 6h16v3H4zM4 15h16v3H4z',
+  box:    'M21 8 12 3 3 8v8l9 5 9-5V8zM3 8l9 5 9-5M12 13v8'
+};
+
+const CATEGORY_EMOJI = {
+  wrench: '🔧', pipe: '🚿', brick: '🧱', bolt: '⚡',
+  paint: '🎨', roof: '🏠', bar: '📏', box: '📦'
+};
+
+const pickCategoryIcon = (name) => {
+  const n = (name || '').toLowerCase();
+  if (n.includes('plumb') || n.includes('pipe') || n.includes('pvc')) return 'pipe';
+  if (n.includes('tool') || n.includes('hard') || n.includes('wrench')) return 'wrench';
+  if (n.includes('build') || n.includes('buld') || n.includes('cement') || n.includes('brick')) return 'brick';
+  if (n.includes('wir') || n.includes('wair') || n.includes('electric') || n.includes('cable')) return 'bolt';
+  if (n.includes('oil') || n.includes('paint') || n.includes('colour') || n.includes('color')) return 'paint';
+  if (n.includes('tin') || n.includes('roof') || n.includes('sheet')) return 'roof';
+  if (n.includes('box') || n.includes('bar') || n.includes('steel') || n.includes('metal')) return 'bar';
+  return 'box';
+};
+
+const categoryIconEmoji = (name) => CATEGORY_EMOJI[pickCategoryIcon(name)] || '📦';
+
+const categoryImageUrl = (cat) => {
+  // Use provided image if available
+  if (cat.image) return cat.image;
+
+  const name = cat.name || 'Category';
+  const iconKey = pickCategoryIcon(name);
+  const iconPath = CATEGORY_ICONS[iconKey] || CATEGORY_ICONS.box;
+
+  // Deterministic hue from name
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  const hue = Math.abs(hash) % 30; // 0-30 (orange/red range)
+
+  const bg1 = `hsl(${15 + hue}, 20%, 8%)`;
+  const bg2 = `hsl(${15 + hue}, 25%, 14%)`;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${bg1}"/>
+        <stop offset="1" stop-color="${bg2}"/>
+      </linearGradient>
+      <pattern id="p" width="24" height="24" patternUnits="userSpaceOnUse">
+        <path d="M0 24 L24 0" stroke="rgba(234,88,12,0.08)" stroke-width="1"/>
+      </pattern>
+      <radialGradient id="v" cx="0.5" cy="0.4" r="0.7">
+        <stop offset="0" stop-color="rgba(234,88,12,0.18)"/>
+        <stop offset="1" stop-color="rgba(234,88,12,0)"/>
+      </radialGradient>
+    </defs>
+    <rect width="400" height="300" fill="url(#g)"/>
+    <rect width="400" height="300" fill="url(#p)"/>
+    <rect width="400" height="300" fill="url(#v)"/>
+    <g transform="translate(200 145) scale(3.5) translate(-12 -12)"
+       fill="none" stroke="#ea580c" stroke-width="1.6"
+       stroke-linecap="round" stroke-linejoin="round">
+      <path d="${iconPath}"/>
+    </g>
+  </svg>`;
+
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+};
+
+
+// ==========================================================================
 // WHATSAPP
 // ==========================================================================
 
@@ -155,7 +233,6 @@ const init = async () => {
 
   currencySymbol = shopInfo.currencySymbol || 'Rs.';
 
-  // Derive categories if empty
   if (categories.length === 0 && products.length > 0) {
     const map = new Map();
     products.forEach((p) => {
@@ -165,7 +242,7 @@ const init = async () => {
     });
     categories = Array.from(map.entries())
       .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => b.count - a.count);
   }
 
   const productCountByCat = {};
@@ -183,6 +260,7 @@ const init = async () => {
   populateHero();
   populateContact();
   populateCategoryBar();
+  populateCategoryShowcase();
   populateFooter();
   wireEvents();
   wireMainMenu();
@@ -192,8 +270,7 @@ const init = async () => {
   const content = $('content');
   if (content) content.setAttribute('aria-busy', 'false');
 
-  // Scroll reveal — mark sections for reveal
-  document.querySelectorAll('.hero-left, .hero-bento > *, .bulk-left, .bulk-right')
+  document.querySelectorAll('.hero-left, .hero-bento > *, .showcase-head, .cat-card, .bulk-left, .bulk-right')
     .forEach(el => el.classList.add('reveal'));
 
   initScrollReveal();
@@ -407,6 +484,58 @@ const populateCategoryBar = () => {
       if (window.innerWidth < 900) {
         document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
+    });
+  });
+};
+
+/* ── NEW: Category Showcase ── */
+const populateCategoryShowcase = () => {
+  const grid = $('category-showcase');
+  if (!grid) return;
+
+  if (!categories || categories.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1; padding:48px; text-align:center; color:var(--ink-4); font-style:italic;">
+        No categories yet.
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = categories.map((c, i) => {
+    const img = categoryImageUrl(c);
+    const emoji = categoryIconEmoji(c.name);
+    const num = String(i + 1).padStart(2, '0');
+    return `
+      <button class="cat-card" data-cat="${escapeHtml(c.name)}" type="button" aria-label="Browse ${escapeHtml(c.name)} — ${c.count} products">
+        <div class="cat-card-img">
+          <img src="${img}" alt="${escapeHtml(c.name)}" loading="lazy" width="400" height="300" />
+          <span class="cat-card-icon" aria-hidden="true">${emoji}</span>
+          <span class="cat-card-num">${num}</span>
+        </div>
+        <div class="cat-card-body">
+          <div class="cat-card-text">
+            <div class="cat-card-name">${escapeHtml(c.name)}</div>
+            <div class="cat-card-count">${c.count} ${c.count === 1 ? 'product' : 'products'}</div>
+          </div>
+          <div class="cat-card-arrow" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </div>
+      </button>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.cat-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const cat = card.dataset.cat;
+      const targetTab = document.querySelector(`.cat-tab[data-cat="${CSS.escape(cat)}"]`);
+      if (targetTab) {
+        targetTab.click();
+      }
+      document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 };
@@ -791,7 +920,6 @@ const render = () => {
     });
   });
 
-  // Re-attach interactions to newly rendered cards
   initCardSpotlight();
 };
 
