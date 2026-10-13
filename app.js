@@ -1,5 +1,6 @@
 // ==========================================================================
 // HARDWARE SHOP — APP LOGIC
+// Updated with UI UX Pro Max design intelligence
 // ==========================================================================
 
 let products = [];
@@ -28,8 +29,9 @@ const showToast = (message, icon = 'ℹ️', duration = 3000) => {
 
   const toast = document.createElement('div');
   toast.className = 'toast';
+  toast.setAttribute('role', 'status');
   toast.innerHTML = `
-    <span class="toast-icon">${icon}</span>
+    <span class="toast-icon" aria-hidden="true">${icon}</span>
     <span>${message}</span>
   `;
   wrap.appendChild(toast);
@@ -187,8 +189,58 @@ const init = async () => {
 
   render();
 
+  const content = $('content');
+  if (content) content.setAttribute('aria-busy', 'false');
+
+  // Scroll reveal — mark sections for reveal
+  document.querySelectorAll('.hero-left, .hero-bento > *, .bulk-left, .bulk-right')
+    .forEach(el => el.classList.add('reveal'));
+
+  initScrollReveal();
+  initCardSpotlight();
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
+  });
+};
+
+
+// ==========================================================================
+// SCROLL REVEAL
+// ==========================================================================
+
+const initScrollReveal = () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('.reveal:not(.in)').forEach(el => io.observe(el));
+};
+
+
+// ==========================================================================
+// CARD SPOTLIGHT
+// ==========================================================================
+
+const initCardSpotlight = () => {
+  document.querySelectorAll('.card').forEach((card) => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--mx', x + '%');
+      card.style.setProperty('--my', y + '%');
+    });
   });
 };
 
@@ -208,14 +260,12 @@ const populateBrand = () => {
   const meta = $('meta-desc');
   if (meta) meta.setAttribute('content', tag);
 
-  // Render logo (header + footer)
   renderLogo();
 };
 
 const renderLogo = () => {
   const logo = shopInfo.logo;
 
-  // Header logo
   const headerImg = $('logo-img');
   const headerSvg = $('logo-svg');
   const headerMark = $('logo-mark');
@@ -231,7 +281,6 @@ const renderLogo = () => {
     }
   }
 
-  // Footer logo
   const footerImg = $('footer-logo-img');
   const footerSvg = $('footer-logo-svg');
   const footerMark = $('footer-mark');
@@ -283,6 +332,10 @@ const populateHero = () => {
 const animateNum = (id, target) => {
   const el = $(id);
   if (!el) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = target;
+    return;
+  }
   const duration = 900;
   const start = performance.now();
   const tick = (now) => {
@@ -326,14 +379,14 @@ const populateCategoryBar = () => {
   if (!bar) return;
 
   const allTab = `
-    <button class="cat-tab active" data-cat="">
+    <button class="cat-tab active" data-cat="" role="tab" aria-selected="true">
       All Products
       <span class="cat-tab-count">${products.length}</span>
     </button>
   `;
 
   const tabs = categories.map((c) => `
-    <button class="cat-tab" data-cat="${escapeHtml(c.name)}">
+    <button class="cat-tab" data-cat="${escapeHtml(c.name)}" role="tab" aria-selected="false">
       ${escapeHtml(c.name)}
       <span class="cat-tab-count">${c.count}</span>
     </button>
@@ -343,8 +396,12 @@ const populateCategoryBar = () => {
 
   bar.querySelectorAll('.cat-tab').forEach((btn) => {
     btn.addEventListener('click', () => {
-      bar.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+      bar.querySelectorAll('.cat-tab').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
       activeCategory = btn.dataset.cat || '';
       render();
       if (window.innerWidth < 900) {
@@ -359,7 +416,6 @@ const populateFooter = () => {
   setText('footer-name', name);
   setText('footer-tagline', shopInfo.description || '');
 
-  // Visit
   const visit = $('footer-visit');
   if (visit) {
     const items = [];
@@ -368,7 +424,6 @@ const populateFooter = () => {
     visit.innerHTML = items.join('') || '<div class="static">—</div>';
   }
 
-  // Contact
   const contact = $('footer-contact');
   if (contact) {
     const items = [];
@@ -381,7 +436,6 @@ const populateFooter = () => {
     contact.innerHTML = items.join('') || '<div class="static">—</div>';
   }
 
-  // Popular categories
   const catCol = $('footer-cats');
   if (catCol) {
     const top = categories.slice(0, 5);
@@ -402,7 +456,6 @@ const populateFooter = () => {
     });
   }
 
-  // Follow
   const follow = $('footer-follow');
   if (follow) {
     const items = [];
@@ -434,30 +487,46 @@ const wireMainMenu = () => {
 
   menuItems.forEach((item) => {
 
-    // Dropdown toggle
     if (item.classList.contains('menu-dropdown')) {
+      const toggle = () => {
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.menu-dropdown').forEach((d) => {
+          d.classList.remove('open');
+          d.setAttribute('aria-expanded', 'false');
+        });
+        if (!wasOpen) {
+          item.classList.add('open');
+          item.setAttribute('aria-expanded', 'true');
+        }
+      };
+
       item.addEventListener('click', (e) => {
         e.stopPropagation();
-        const wasOpen = item.classList.contains('open');
-        document.querySelectorAll('.menu-dropdown').forEach((d) => d.classList.remove('open'));
-        if (!wasOpen) item.classList.add('open');
+        toggle();
+      });
+
+      item.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle();
+        }
       });
       return;
     }
 
-    // Regular links
     item.addEventListener('click', (e) => {
       e.preventDefault();
       handleMenuAction(item.dataset.action);
     });
   });
 
-  // Close on outside click
   document.addEventListener('click', () => {
-    document.querySelectorAll('.menu-dropdown').forEach((d) => d.classList.remove('open'));
+    document.querySelectorAll('.menu-dropdown').forEach((d) => {
+      d.classList.remove('open');
+      d.setAttribute('aria-expanded', 'false');
+    });
   });
 
-  // Prevent clicks inside panel from closing
   document.querySelectorAll('.menu-panel').forEach((p) => {
     p.addEventListener('click', (e) => e.stopPropagation());
   });
@@ -476,7 +545,7 @@ const buildDepartmentsPanel = () => {
   }
 
   const items = categories.map((c) => `
-    <div class="menu-panel-item" data-cat="${escapeHtml(c.name)}">
+    <div class="menu-panel-item" data-cat="${escapeHtml(c.name)}" role="menuitem" tabindex="0">
       <span>${escapeHtml(c.name)}</span>
       <span class="menu-panel-item-count">${c.count}</span>
     </div>
@@ -488,11 +557,22 @@ const buildDepartmentsPanel = () => {
   `;
 
   panel.querySelectorAll('.menu-panel-item').forEach((el) => {
-    el.addEventListener('click', () => {
+    const activate = () => {
       const cat = el.dataset.cat;
       const targetTab = document.querySelector(`.cat-tab[data-cat="${CSS.escape(cat)}"]`);
       if (targetTab) targetTab.click();
-      document.querySelectorAll('.menu-dropdown').forEach((d) => d.classList.remove('open'));
+      document.querySelectorAll('.menu-dropdown').forEach((d) => {
+        d.classList.remove('open');
+        d.setAttribute('aria-expanded', 'false');
+      });
+    };
+
+    el.addEventListener('click', activate);
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        activate();
+      }
     });
   });
 };
@@ -626,7 +706,7 @@ const render = () => {
   if (filtered.length === 0) {
     content.className = 'state-empty';
     content.innerHTML = `
-      <div class="empty-icon">🔍</div>
+      <div class="empty-icon" aria-hidden="true">🔍</div>
       <div class="empty-h">No products found</div>
       <div class="empty-p">${searchTerm
         ? `Nothing matches "<strong>${escapeHtml(searchTerm)}</strong>". Try a different search term.`
@@ -640,19 +720,19 @@ const render = () => {
 
   content.className = '';
   content.innerHTML = `
-    <div class="grid">
+    <div class="grid" role="list">
       ${filtered.map((p) => {
         const waClickable = !!shopInfo.phone;
         return `
-          <div class="card" data-id="${escapeHtml(p.id)}">
+          <div class="card" data-id="${escapeHtml(p.id)}" role="listitem" tabindex="0">
             <div class="card-img">
-              <img src="${imageUrl(p)}" alt="${escapeHtml(p.name)}" loading="lazy" />
+              <img src="${imageUrl(p)}" alt="${escapeHtml(p.name)}" loading="lazy" width="400" height="300" />
               <span class="card-badge ${stockClass(p.stockStatus)}">${stockLabel(p.stockStatus)}</span>
               ${waClickable ? `
                 <button class="card-wa"
                         data-product-id="${escapeHtml(p.id)}"
-                        aria-label="Order on WhatsApp">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        aria-label="Order ${escapeHtml(p.name)} on WhatsApp">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
                   </svg>
                 </button>
@@ -667,7 +747,7 @@ const render = () => {
                   <div class="card-unit">${escapeHtml(unitLabel(p.unit) || '—')}</div>
                   <div class="card-price">${formatPrice(p.price)}</div>
                 </div>
-                <div class="card-arrow">
+                <div class="card-arrow" aria-hidden="true">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
                     <path d="M5 12h14M12 5l7 7-7 7"/>
                   </svg>
@@ -681,11 +761,22 @@ const render = () => {
   `;
 
   content.querySelectorAll('.card').forEach((card) => {
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('.card-wa')) return;
+    const openProduct = () => {
       const id = card.dataset.id;
       const product = products.find((p) => String(p.id) === String(id));
       if (product) openModal(product);
+    };
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.card-wa')) return;
+      openProduct();
+    });
+
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openProduct();
+      }
     });
   });
 
@@ -699,6 +790,9 @@ const render = () => {
       }
     });
   });
+
+  // Re-attach interactions to newly rendered cards
+  initCardSpotlight();
 };
 
 
@@ -775,6 +869,7 @@ const openModal = (product) => {
   if (modal) {
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
+    setTimeout(() => $('modal-close')?.focus(), 50);
   }
 };
 
@@ -803,7 +898,9 @@ window.clearAllFilters = () => {
   if (ss) ss.value = 'featured';
 
   document.querySelectorAll('.cat-tab').forEach((b, i) => {
-    b.classList.toggle('active', i === 0);
+    const active = i === 0;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-selected', active ? 'true' : 'false');
   });
 
   render();
