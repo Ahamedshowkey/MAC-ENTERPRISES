@@ -1,6 +1,7 @@
 // ==========================================================================
 // HARDWARE SHOP — APP LOGIC
-// Category showcase with auto-generated industrial SVG tiles
+// Uses real category images from your POS (categories.json → image field)
+// Falls back to themed SVG only when no image is provided
 // ==========================================================================
 
 let products = [];
@@ -79,7 +80,7 @@ const unitLabel = (u) => {
   return map[String(u).toLowerCase()] || `per ${u}`;
 };
 
-const imageUrl = (p) => {
+const productImageUrl = (p) => {
   if (p && p.image) return p.image;
   const initial = ((p && p.name) || '?').charAt(0).toUpperCase();
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
@@ -103,7 +104,7 @@ const loadJSON = async (file, fallback = []) => {
 
 
 // ==========================================================================
-// CATEGORY IMAGE + ICON (auto-generated industrial SVG tiles)
+// CATEGORY IMAGE — uses YOUR POS image first, SVG fallback only
 // ==========================================================================
 
 const CATEGORY_ICONS = {
@@ -136,18 +137,25 @@ const pickCategoryIcon = (name) => {
 
 const categoryIconEmoji = (name) => CATEGORY_EMOJI[pickCategoryIcon(name)] || '📦';
 
+/**
+ * Returns the category image.
+ * 1. Uses the image URL / base64 from YOUR POS (categories.json → image field)
+ * 2. Falls back to a themed SVG only if no image is provided
+ */
 const categoryImageUrl = (cat) => {
-  // Use provided image if available
-  if (cat.image) return cat.image;
+  // ─── PRIMARY: your POS image ───
+  if (cat && cat.image && String(cat.image).trim()) {
+    return cat.image;
+  }
 
+  // ─── FALLBACK: generated SVG (only used when POS has no image) ───
   const name = cat.name || 'Category';
   const iconKey = pickCategoryIcon(name);
   const iconPath = CATEGORY_ICONS[iconKey] || CATEGORY_ICONS.box;
 
-  // Deterministic hue from name
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
-  const hue = Math.abs(hash) % 30; // 0-30 (orange/red range)
+  const hue = Math.abs(hash) % 30;
 
   const bg1 = `hsl(${15 + hue}, 20%, 8%)`;
   const bg2 = `hsl(${15 + hue}, 25%, 14%)`;
@@ -233,18 +241,23 @@ const init = async () => {
 
   currencySymbol = shopInfo.currencySymbol || 'Rs.';
 
+  // If categories.json is empty, derive from products
   if (categories.length === 0 && products.length > 0) {
     const map = new Map();
     products.forEach((p) => {
       const cat = (p.category || '').trim();
       if (!cat) return;
-      map.set(cat, (map.get(cat) || 0) + 1);
+      const existing = map.get(cat);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        map.set(cat, { name: cat, image: '', count: 1 });
+      }
     });
-    categories = Array.from(map.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
+    categories = Array.from(map.values()).sort((a, b) => b.count - a.count);
   }
 
+  // Sync product counts (keep user's image field intact)
   const productCountByCat = {};
   products.forEach((p) => {
     const c = p.category || '';
@@ -260,7 +273,7 @@ const init = async () => {
   populateHero();
   populateContact();
   populateCategoryBar();
-  populateCategoryShowcase();
+  populateCategoryShowcase();   // ← real POS images
   populateFooter();
   wireEvents();
   wireMainMenu();
@@ -488,7 +501,7 @@ const populateCategoryBar = () => {
   });
 };
 
-/* ── NEW: Category Showcase ── */
+/* ── Category Showcase — uses YOUR POS images ── */
 const populateCategoryShowcase = () => {
   const grid = $('category-showcase');
   if (!grid) return;
@@ -503,6 +516,7 @@ const populateCategoryShowcase = () => {
   }
 
   grid.innerHTML = categories.map((c, i) => {
+    // Uses YOUR POS image from categories.json (image field)
     const img = categoryImageUrl(c);
     const emoji = categoryIconEmoji(c.name);
     const num = String(i + 1).padStart(2, '0');
@@ -605,7 +619,7 @@ const populateFooter = () => {
 
 
 // ==========================================================================
-// MAIN MENU WIRING
+// MAIN MENU
 // ==========================================================================
 
 const wireMainMenu = () => {
@@ -855,7 +869,7 @@ const render = () => {
         return `
           <div class="card" data-id="${escapeHtml(p.id)}" role="listitem" tabindex="0">
             <div class="card-img">
-              <img src="${imageUrl(p)}" alt="${escapeHtml(p.name)}" loading="lazy" width="400" height="300" />
+              <img src="${productImageUrl(p)}" alt="${escapeHtml(p.name)}" loading="lazy" width="400" height="300" />
               <span class="card-badge ${stockClass(p.stockStatus)}">${stockLabel(p.stockStatus)}</span>
               ${waClickable ? `
                 <button class="card-wa"
@@ -939,7 +953,7 @@ const openModal = (product) => {
 
   const img = $('modal-img');
   if (img) {
-    img.src = imageUrl(product);
+    img.src = productImageUrl(product);
     img.alt = product.name || '';
   }
 
