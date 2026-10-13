@@ -1,7 +1,7 @@
 // ==========================================================================
 // HARDWARE SHOP — APP LOGIC
-// Uses real category images from your POS (categories.json → image field)
-// Falls back to themed SVG only when no image is provided
+// Category images: uses POS image first, then first product's image,
+// then falls back to a themed industrial SVG tile.
 // ==========================================================================
 
 let products = [];
@@ -81,7 +81,7 @@ const unitLabel = (u) => {
 };
 
 const productImageUrl = (p) => {
-  if (p && p.image) return p.image;
+  if (p && p.image && String(p.image).trim().length > 20) return p.image;
   const initial = ((p && p.name) || '?').charAt(0).toUpperCase();
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
     <rect width="400" height="300" fill="#f4f4f5"/>
@@ -104,7 +104,7 @@ const loadJSON = async (file, fallback = []) => {
 
 
 // ==========================================================================
-// CATEGORY IMAGE — uses YOUR POS image first, SVG fallback only
+// CATEGORY ICONS + FALLBACK SVG
 // ==========================================================================
 
 const CATEGORY_ICONS = {
@@ -138,18 +138,9 @@ const pickCategoryIcon = (name) => {
 const categoryIconEmoji = (name) => CATEGORY_EMOJI[pickCategoryIcon(name)] || '📦';
 
 /**
- * Returns the category image.
- * 1. Uses the image URL / base64 from YOUR POS (categories.json → image field)
- * 2. Falls back to a themed SVG only if no image is provided
+ * Themed SVG fallback tile — used only when no real image exists.
  */
-const categoryImageUrl = (cat) => {
-  // ─── PRIMARY: your POS image ───
-  if (cat && cat.image && String(cat.image).trim()) {
-    return cat.image;
-  }
-
-  // ─── FALLBACK: generated SVG (only used when POS has no image) ───
-  const name = cat.name || 'Category';
+const categoryFallbackSvg = (name) => {
   const iconKey = pickCategoryIcon(name);
   const iconPath = CATEGORY_ICONS[iconKey] || CATEGORY_ICONS.box;
 
@@ -185,6 +176,39 @@ const categoryImageUrl = (cat) => {
   </svg>`;
 
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+};
+
+/**
+ * Checks whether a value looks like a real image (URL or data-uri).
+ * Rejects empty strings, whitespace, and very short garbage.
+ */
+const isRealImage = (v) =>
+  typeof v === 'string' && v.trim().length > 20 &&
+  (v.startsWith('data:image') || v.startsWith('http') || v.startsWith('/') ||
+   v.startsWith('./') || v.startsWith('../') || v.includes('.'));
+
+/**
+ * Resolves the best image for a category:
+ *  1. Category image on categories.json (from your POS)
+ *  2. First product in that category with an image
+ *  3. Themed SVG fallback
+ */
+const categoryImageUrl = (cat) => {
+  // 1. Category image (checks all common keys)
+  const catImg = cat && (
+    cat.image || cat.imageUrl || cat.img ||
+    cat.thumbnail || cat.photo || cat.picture
+  );
+  if (isRealImage(catImg)) return catImg;
+
+  // 2. First product in this category with an image
+  const productWithImage = products.find(
+    (p) => p.category === cat.name && isRealImage(p.image)
+  );
+  if (productWithImage) return productWithImage.image;
+
+  // 3. Themed SVG fallback
+  return categoryFallbackSvg(cat.name || 'Category');
 };
 
 
@@ -241,6 +265,13 @@ const init = async () => {
 
   currencySymbol = shopInfo.currencySymbol || 'Rs.';
 
+  // ───── DEBUG (open DevTools Console to see what's loaded) ─────
+  console.log('[MAC] Products loaded:', products.length);
+  console.log('[MAC] Categories loaded:', categories.length, categories);
+  console.log('[MAC] Products with real images:',
+    products.filter(p => isRealImage(p.image)).length);
+  // ──────────────────────────────────────────────────────────────
+
   // If categories.json is empty, derive from products
   if (categories.length === 0 && products.length > 0) {
     const map = new Map();
@@ -255,6 +286,7 @@ const init = async () => {
       }
     });
     categories = Array.from(map.values()).sort((a, b) => b.count - a.count);
+    console.log('[MAC] Categories derived from products:', categories);
   }
 
   // Sync product counts (keep user's image field intact)
@@ -273,7 +305,7 @@ const init = async () => {
   populateHero();
   populateContact();
   populateCategoryBar();
-  populateCategoryShowcase();   // ← real POS images
+  populateCategoryShowcase();
   populateFooter();
   wireEvents();
   wireMainMenu();
@@ -501,7 +533,7 @@ const populateCategoryBar = () => {
   });
 };
 
-/* ── Category Showcase — uses YOUR POS images ── */
+/* ── Category Showcase — uses POS images with fallback ── */
 const populateCategoryShowcase = () => {
   const grid = $('category-showcase');
   if (!grid) return;
@@ -516,14 +548,23 @@ const populateCategoryShowcase = () => {
   }
 
   grid.innerHTML = categories.map((c, i) => {
-    // Uses YOUR POS image from categories.json (image field)
     const img = categoryImageUrl(c);
     const emoji = categoryIconEmoji(c.name);
     const num = String(i + 1).padStart(2, '0');
+    const fallbackSvg = categoryFallbackSvg(c.name);
+
+    // Log what image each category is using (DevTools)
+    console.log(`[MAC] Category "${c.name}" image → ${img.slice(0, 60)}...`);
+
     return `
       <button class="cat-card" data-cat="${escapeHtml(c.name)}" type="button" aria-label="Browse ${escapeHtml(c.name)} — ${c.count} products">
         <div class="cat-card-img">
-          <img src="${img}" alt="${escapeHtml(c.name)}" loading="lazy" width="400" height="300" />
+          <img src="${img}"
+               alt="${escapeHtml(c.name)}"
+               loading="lazy"
+               width="400" height="300"
+               data-fallback="${fallbackSvg}"
+               onerror="this.onerror=null;this.src=this.dataset.fallback;" />
           <span class="cat-card-icon" aria-hidden="true">${emoji}</span>
           <span class="cat-card-num">${num}</span>
         </div>
@@ -546,9 +587,7 @@ const populateCategoryShowcase = () => {
     card.addEventListener('click', () => {
       const cat = card.dataset.cat;
       const targetTab = document.querySelector(`.cat-tab[data-cat="${CSS.escape(cat)}"]`);
-      if (targetTab) {
-        targetTab.click();
-      }
+      if (targetTab) targetTab.click();
       document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
