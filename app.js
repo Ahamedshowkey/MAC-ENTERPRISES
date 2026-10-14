@@ -1,7 +1,5 @@
 // ==========================================================================
-// HARDWARE SHOP — APP LOGIC
-// Category images: uses POS image first, then first product's image,
-// then falls back to a themed industrial SVG tile.
+// HARDWARE SHOP — APP LOGIC (DUAL-THEME BLUE)
 // ==========================================================================
 
 let products = [];
@@ -17,6 +15,62 @@ const $ = (id) => document.getElementById(id);
 const setText = (id, value) => {
   const el = $(id);
   if (el) el.textContent = value == null ? '' : String(value);
+};
+
+
+// ==========================================================================
+// THEME TOGGLE
+// ==========================================================================
+
+const THEME_KEY = 'mac-theme';
+
+const getStoredTheme = () => {
+  try {
+    const t = localStorage.getItem(THEME_KEY);
+    if (t === 'light' || t === 'dark') return t;
+  } catch (e) {}
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+};
+
+const applyTheme = (theme, animate = true) => {
+  const html = document.documentElement;
+
+  if (animate) {
+    html.classList.add('theme-transition');
+    setTimeout(() => html.classList.remove('theme-transition'), 420);
+  }
+
+  html.setAttribute('data-theme', theme);
+
+  const meta = $('meta-theme-color');
+  if (meta) meta.setAttribute('content', theme === 'light' ? '#f8fafc' : '#060814');
+
+  const btn = $('theme-toggle');
+  if (btn) {
+    btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    btn.setAttribute('title', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+};
+
+const toggleTheme = () => {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next, true);
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+};
+
+const initTheme = () => {
+  applyTheme(getStoredTheme(), false);
+
+  const btn = $('theme-toggle');
+  if (btn) btn.addEventListener('click', toggleTheme);
+
+  // React to system preference changes if user hasn't chosen
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+    let stored = null;
+    try { stored = localStorage.getItem(THEME_KEY); } catch (err) {}
+    if (!stored) applyTheme(e.matches ? 'light' : 'dark', true);
+  });
 };
 
 
@@ -83,10 +137,26 @@ const unitLabel = (u) => {
 const productImageUrl = (p) => {
   if (p && p.image && String(p.image).trim().length > 20) return p.image;
   const initial = ((p && p.name) || '?').charAt(0).toUpperCase();
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const bg1 = isLight ? '#f1f5f9' : '#0a0e1f';
+  const bg2 = isLight ? '#e2e8f0' : '#151b33';
+  const stroke = isLight ? 'rgba(37,99,235,0.25)' : 'rgba(96,165,250,0.25)';
+  const fill = isLight ? '#2563eb' : '#60a5fa';
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
-    <rect width="400" height="300" fill="#f4f4f5"/>
-    <rect x="40" y="40" width="320" height="220" fill="none" stroke="#d4d4d8" stroke-width="2" stroke-dasharray="6 4"/>
-    <text x="200" y="175" font-family="Archivo,sans-serif" font-size="90" font-weight="900" fill="#ea580c" text-anchor="middle">${initial}</text>
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${bg1}"/>
+        <stop offset="1" stop-color="${bg2}"/>
+      </linearGradient>
+      <pattern id="p" width="24" height="24" patternUnits="userSpaceOnUse">
+        <path d="M0 24 L24 0" stroke="${stroke}" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <rect width="400" height="300" fill="url(#g)"/>
+    <rect width="400" height="300" fill="url(#p)"/>
+    <rect x="40" y="40" width="320" height="220" fill="none" stroke="${stroke}" stroke-width="2" stroke-dasharray="6 4" rx="12"/>
+    <text x="200" y="180" font-family="Barlow Condensed,Archivo,sans-serif" font-size="120" font-weight="700" fill="${fill}" text-anchor="middle" opacity="0.9">${initial}</text>
   </svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 };
@@ -137,19 +207,20 @@ const pickCategoryIcon = (name) => {
 
 const categoryIconEmoji = (name) => CATEGORY_EMOJI[pickCategoryIcon(name)] || '📦';
 
-/**
- * Themed SVG fallback tile — used only when no real image exists.
- */
 const categoryFallbackSvg = (name) => {
   const iconKey = pickCategoryIcon(name);
   const iconPath = CATEGORY_ICONS[iconKey] || CATEGORY_ICONS.box;
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
 
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
-  const hue = Math.abs(hash) % 30;
+  const rot = Math.abs(hash) % 24;
 
-  const bg1 = `hsl(${15 + hue}, 20%, 8%)`;
-  const bg2 = `hsl(${15 + hue}, 25%, 14%)`;
+  const bg1 = isLight ? '#f1f5f9' : '#0a0e1f';
+  const bg2 = isLight ? '#e2e8f0' : '#151b33';
+  const stroke = isLight ? 'rgba(37,99,235,0.10)' : 'rgba(96,165,250,0.10)';
+  const glow = isLight ? 'rgba(37,99,235,0.18)' : 'rgba(96,165,250,0.28)';
+  const icon = isLight ? '#2563eb' : '#60a5fa';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
     <defs>
@@ -157,57 +228,43 @@ const categoryFallbackSvg = (name) => {
         <stop offset="0" stop-color="${bg1}"/>
         <stop offset="1" stop-color="${bg2}"/>
       </linearGradient>
-      <pattern id="p" width="24" height="24" patternUnits="userSpaceOnUse">
-        <path d="M0 24 L24 0" stroke="rgba(234,88,12,0.08)" stroke-width="1"/>
+      <pattern id="p" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(${rot})">
+        <path d="M0 28 L28 0" stroke="${stroke}" stroke-width="1"/>
       </pattern>
       <radialGradient id="v" cx="0.5" cy="0.4" r="0.7">
-        <stop offset="0" stop-color="rgba(234,88,12,0.18)"/>
-        <stop offset="1" stop-color="rgba(234,88,12,0)"/>
+        <stop offset="0" stop-color="${glow}"/>
+        <stop offset="1" stop-color="rgba(0,0,0,0)"/>
       </radialGradient>
     </defs>
     <rect width="400" height="300" fill="url(#g)"/>
     <rect width="400" height="300" fill="url(#p)"/>
     <rect width="400" height="300" fill="url(#v)"/>
-    <g transform="translate(200 145) scale(3.5) translate(-12 -12)"
-       fill="none" stroke="#ea580c" stroke-width="1.6"
-       stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(200 150) scale(4.2) translate(-12 -12)"
+       fill="none" stroke="${icon}" stroke-width="1.5"
+       stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
       <path d="${iconPath}"/>
     </g>
   </svg>`;
-
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 };
 
-/**
- * Checks whether a value looks like a real image (URL or data-uri).
- * Rejects empty strings, whitespace, and very short garbage.
- */
 const isRealImage = (v) =>
   typeof v === 'string' && v.trim().length > 20 &&
   (v.startsWith('data:image') || v.startsWith('http') || v.startsWith('/') ||
-   v.startsWith('./') || v.startsWith('../') || v.includes('.'));
+   v.startsWith('./') || v.startsWith('../'));
 
-/**
- * Resolves the best image for a category:
- *  1. Category image on categories.json (from your POS)
- *  2. First product in that category with an image
- *  3. Themed SVG fallback
- */
 const categoryImageUrl = (cat) => {
-  // 1. Category image (checks all common keys)
   const catImg = cat && (
     cat.image || cat.imageUrl || cat.img ||
     cat.thumbnail || cat.photo || cat.picture
   );
   if (isRealImage(catImg)) return catImg;
 
-  // 2. First product in this category with an image
   const productWithImage = products.find(
     (p) => p.category === cat.name && isRealImage(p.image)
   );
   if (productWithImage) return productWithImage.image;
 
-  // 3. Themed SVG fallback
   return categoryFallbackSvg(cat.name || 'Category');
 };
 
@@ -253,6 +310,8 @@ const orderMessage = (product) => [
 
 const init = async () => {
 
+  initTheme();
+
   const [loadedProducts, loadedCategories, loadedShop] = await Promise.all([
     loadJSON('products.json', []),
     loadJSON('categories.json', []),
@@ -265,31 +324,21 @@ const init = async () => {
 
   currencySymbol = shopInfo.currencySymbol || 'Rs.';
 
-  // ───── DEBUG (open DevTools Console to see what's loaded) ─────
-  console.log('[MAC] Products loaded:', products.length);
-  console.log('[MAC] Categories loaded:', categories.length, categories);
-  console.log('[MAC] Products with real images:',
-    products.filter(p => isRealImage(p.image)).length);
-  // ──────────────────────────────────────────────────────────────
+  console.log('[MAC] Products:', products.length);
+  console.log('[MAC] Categories:', categories.length);
 
-  // If categories.json is empty, derive from products
   if (categories.length === 0 && products.length > 0) {
     const map = new Map();
     products.forEach((p) => {
       const cat = (p.category || '').trim();
       if (!cat) return;
       const existing = map.get(cat);
-      if (existing) {
-        existing.count += 1;
-      } else {
-        map.set(cat, { name: cat, image: '', count: 1 });
-      }
+      if (existing) existing.count += 1;
+      else map.set(cat, { name: cat, image: '', count: 1 });
     });
     categories = Array.from(map.values()).sort((a, b) => b.count - a.count);
-    console.log('[MAC] Categories derived from products:', categories);
   }
 
-  // Sync product counts (keep user's image field intact)
   const productCountByCat = {};
   products.forEach((p) => {
     const c = p.category || '';
@@ -315,10 +364,8 @@ const init = async () => {
   const content = $('content');
   if (content) content.setAttribute('aria-busy', 'false');
 
-  document.querySelectorAll('.hero-left, .hero-bento > *, .showcase-head, .cat-card, .bulk-left, .bulk-right')
-    .forEach(el => el.classList.add('reveal'));
-
   initScrollReveal();
+  initHeroSpotlight();
   initCardSpotlight();
 
   document.addEventListener('keydown', (e) => {
@@ -344,15 +391,54 @@ const initScrollReveal = () => {
         io.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+  }, { threshold: 0.1, rootMargin: '0px 0px -80px 0px' });
 
   document.querySelectorAll('.reveal:not(.in)').forEach(el => io.observe(el));
 };
 
+const observeNewReveals = () => {
+  const fresh = document.querySelectorAll('.reveal:not(.in):not([data-obs])');
+  if (!fresh.length) return;
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    fresh.forEach(el => el.classList.add('in'));
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+  fresh.forEach(el => {
+    el.setAttribute('data-obs', '1');
+    io.observe(el);
+  });
+};
+
 
 // ==========================================================================
-// CARD SPOTLIGHT
+// HERO / CARD SPOTLIGHT
 // ==========================================================================
+
+const initHeroSpotlight = () => {
+  const hero = $('hero');
+  const spotlight = hero?.querySelector('.hero-spotlight');
+  if (!hero || !spotlight) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  hero.addEventListener('mousemove', (e) => {
+    const rect = hero.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    spotlight.style.setProperty('--mx', x + '%');
+    spotlight.style.setProperty('--my', y + '%');
+  });
+};
 
 const initCardSpotlight = () => {
   document.querySelectorAll('.card').forEach((card) => {
@@ -399,7 +485,7 @@ const renderLogo = () => {
     headerSvg.hidden = true;
     if (headerMark) {
       headerMark.style.background = 'transparent';
-      headerMark.style.boxShadow = 'none';
+      headerMark.style.boxShadow = '0 0 24px -4px var(--primary-glow)';
     }
   }
 
@@ -412,16 +498,13 @@ const renderLogo = () => {
     footerImg.alt = shopInfo.shopName || 'Logo';
     footerImg.hidden = false;
     footerSvg.hidden = true;
-    if (footerMark) {
-      footerMark.style.background = 'transparent';
-    }
+    if (footerMark) footerMark.style.background = 'transparent';
   }
 };
 
 const populateHero = () => {
   const tag = shopInfo.description ||
     'Professional-grade hardware, tools, and building supplies. Trade prices, honest service, fast delivery.';
-
   setText('hero-sub', tag);
 
   animateNum('stat-products', products.length);
@@ -458,7 +541,7 @@ const animateNum = (id, target) => {
     el.textContent = target;
     return;
   }
-  const duration = 900;
+  const duration = 1100;
   const start = performance.now();
   const tick = (now) => {
     const p = Math.min((now - start) / duration, 1);
@@ -533,14 +616,13 @@ const populateCategoryBar = () => {
   });
 };
 
-/* ── Category Showcase — uses POS images with fallback ── */
 const populateCategoryShowcase = () => {
   const grid = $('category-showcase');
   if (!grid) return;
 
   if (!categories || categories.length === 0) {
     grid.innerHTML = `
-      <div style="grid-column:1/-1; padding:48px; text-align:center; color:var(--ink-4); font-style:italic;">
+      <div style="grid-column:1/-1; padding:48px; text-align:center; color:var(--text-3); font-style:italic;">
         No categories yet.
       </div>
     `;
@@ -553,11 +635,8 @@ const populateCategoryShowcase = () => {
     const num = String(i + 1).padStart(2, '0');
     const fallbackSvg = categoryFallbackSvg(c.name);
 
-    // Log what image each category is using (DevTools)
-    console.log(`[MAC] Category "${c.name}" image → ${img.slice(0, 60)}...`);
-
     return `
-      <button class="cat-card" data-cat="${escapeHtml(c.name)}" type="button" aria-label="Browse ${escapeHtml(c.name)} — ${c.count} products">
+      <button class="cat-card reveal" style="--i:${i % 6}" data-cat="${escapeHtml(c.name)}" type="button" aria-label="Browse ${escapeHtml(c.name)} — ${c.count} products">
         <div class="cat-card-img">
           <img src="${img}"
                alt="${escapeHtml(c.name)}"
@@ -591,6 +670,8 @@ const populateCategoryShowcase = () => {
       document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
+
+  observeNewReveals();
 };
 
 const populateFooter = () => {
@@ -662,13 +743,10 @@ const populateFooter = () => {
 // ==========================================================================
 
 const wireMainMenu = () => {
-
   const menuItems = document.querySelectorAll('.menu-item');
-
   buildDepartmentsPanel();
 
   menuItems.forEach((item) => {
-
     if (item.classList.contains('menu-dropdown')) {
       const toggle = () => {
         const wasOpen = item.classList.contains('open');
@@ -682,16 +760,9 @@ const wireMainMenu = () => {
         }
       };
 
-      item.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggle();
-      });
-
+      item.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
       item.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          toggle();
-        }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
       });
       return;
     }
@@ -751,10 +822,7 @@ const buildDepartmentsPanel = () => {
 
     el.addEventListener('click', activate);
     el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        activate();
-      }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
     });
   });
 };
@@ -764,12 +832,10 @@ const handleMenuAction = (action) => {
     case 'home':
       window.scrollTo({ top: 0, behavior: 'smooth' });
       break;
-
     case 'offers': {
       const offerCount = products.filter(
         (p) => p.stockStatus === 'low' || p.stockStatus === 'out'
       ).length;
-
       if (offerCount > 0) {
         showToast(`${offerCount} product${offerCount === 1 ? '' : 's'} on special`, '🔥');
         document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -778,21 +844,10 @@ const handleMenuAction = (action) => {
       }
       break;
     }
-
-    case 'about':
-      showToast('About us page coming soon', '📖');
-      break;
-
-    case 'services':
-      showToast('Services page coming soon', '⚙️');
-      break;
-
-    case 'contact':
-      document.querySelector('.footer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      break;
-
-    default:
-      break;
+    case 'about':    showToast('About us page coming soon', '📖'); break;
+    case 'services': showToast('Services page coming soon', '⚙️'); break;
+    case 'contact':  document.querySelector('.footer')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); break;
+    default: break;
   }
 };
 
@@ -829,7 +884,6 @@ const wireEvents = () => {
   });
 
   $('modal-close')?.addEventListener('click', closeModal);
-
   $('modal')?.addEventListener('click', (e) => {
     if (e.target.id === 'modal') closeModal();
   });
@@ -903,17 +957,15 @@ const render = () => {
   content.className = '';
   content.innerHTML = `
     <div class="grid" role="list">
-      ${filtered.map((p) => {
+      ${filtered.map((p, i) => {
         const waClickable = !!shopInfo.phone;
         return `
-          <div class="card" data-id="${escapeHtml(p.id)}" role="listitem" tabindex="0">
+          <div class="card reveal" style="--i:${i % 8}" data-id="${escapeHtml(p.id)}" role="listitem" tabindex="0">
             <div class="card-img">
               <img src="${productImageUrl(p)}" alt="${escapeHtml(p.name)}" loading="lazy" width="400" height="300" />
               <span class="card-badge ${stockClass(p.stockStatus)}">${stockLabel(p.stockStatus)}</span>
               ${waClickable ? `
-                <button class="card-wa"
-                        data-product-id="${escapeHtml(p.id)}"
-                        aria-label="Order ${escapeHtml(p.name)} on WhatsApp">
+                <button class="card-wa" data-product-id="${escapeHtml(p.id)}" aria-label="Order ${escapeHtml(p.name)} on WhatsApp">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
                   </svg>
@@ -955,10 +1007,7 @@ const render = () => {
     });
 
     card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        openProduct();
-      }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProduct(); }
     });
   });
 
@@ -974,6 +1023,7 @@ const render = () => {
   });
 
   initCardSpotlight();
+  observeNewReveals();
 };
 
 
