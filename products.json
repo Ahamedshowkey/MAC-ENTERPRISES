@@ -52,7 +52,7 @@
     "brand": "",
     "unit": "pcs",
     "category": "Tools",
-    "stockStatus": "in"
+    "stockStatus": "out"
   },
   {
     "id": "6ad0e50f3dcc0b26d2e56b06",
@@ -85,7 +85,7 @@
     "brand": "",
     "unit": "pcs",
     "category": "Plumbing",
-    "stockStatus": "in"
+    "stockStatus": "out"
   },
   {
     "id": "6ad0e52f3dcc0b26d2e56d21",
