@@ -1769,5 +1769,16 @@
     "unit": "sheet",
     "category": "Roofing",
     "stockStatus": "in"
+  },
+  {
+    "id": "6ae079db9a679154c75779b4",
+    "name": "tinner",
+    "price": 500,
+    "image": "",
+    "sku": "TINER",
+    "brand": "",
+    "unit": "L",
+    "category": "Paint",
+    "stockStatus": "out"
   }
 ]
