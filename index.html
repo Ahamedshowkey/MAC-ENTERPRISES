@@ -4,133 +4,115 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#060814" id="meta-theme-color" />
-
   <title>Loading…</title>
   <meta name="description" id="meta-desc" content="Hardware shop" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&family=Rubik:wght@500;600;700;800&display=swap" rel="stylesheet" />
 
   <script>
-    // Prevent flash of wrong theme
-    (function() {
+    // Apply saved theme before paint (prevents flash)
+    (function () {
       try {
         var t = localStorage.getItem('mac-theme');
-        if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', t);
       } catch (e) {}
     })();
   </script>
-
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- ══════════ BACKGROUND FX ══════════ -->
-  <div class="bg-fx" aria-hidden="true">
-    <div class="bg-orb bg-orb-1"></div>
-    <div class="bg-orb bg-orb-2"></div>
-    <div class="bg-orb bg-orb-3"></div>
-    <div class="bg-grid"></div>
-    <div class="bg-noise"></div>
-  </div>
+  <!-- ══════════ SVG ICON SPRITE (no emoji icons) ══════════ -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/></symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+        <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+        <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+        <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></symbol>
+        <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></symbol>
+        <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></symbol>
+        <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+        <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3 0 1.4 1 2.5 2.5 2.5Z"/></symbol>
+        <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9l-3.8 3.8Z"/></symbol>
+        <symbol id="c-pipe" viewBox="0 0 24 24"><path d="M3 12h4a3 3 0 0 1 3 3v6M21 12h-4a3 3 0 0 0-3 3M3 9v6M21 9v6"/></symbol>
+        <symbol id="c-brick" viewBox="0 0 24 24"><path d="M3 7h18v4H3zM3 15h18v4H3zM11 7v4M7 15v4M15 15v4"/></symbol>
+        <symbol id="c-bolt" viewBox="0 0 24 24"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z"/></symbol>
+        <symbol id="c-paint" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2ZM12 13v8M9 21h6"/></symbol>
+        <symbol id="c-roof" viewBox="0 0 24 24"><path d="M2 12 12 3l10 9M4 12v9h16v-9"/></symbol>
+        <symbol id="c-bar" viewBox="0 0 24 24"><path d="M4 6h16v3H4zM4 15h16v3H4z"/></symbol>
+        <symbol id="c-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5V8ZM3 8l9 5 9-5M12 13v8"/></symbol>
+    </defs>
+  </svg>
 
+  <div class="bg-fx" aria-hidden="true"></div>
   <a href="#products-content" class="skip-link">Skip to products</a>
 
   <!-- ══════════ UTILITY BAR ══════════ -->
   <div class="util" role="complementary" aria-label="Shop information">
     <div class="util-inner">
-      <div class="util-left">
-        <span class="util-item">
-          <span class="util-dot" aria-hidden="true"></span>
-          Open 8 AM – 6 PM
-        </span>
-        <span class="util-item util-loc">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>Visit our yard</span>
-        </span>
-      </div>
-      <div class="util-right">
-        <span class="util-item util-tag">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 15 8.5 22 9.3 17 14 18.3 21 12 17.8 5.7 21 7 14 2 9.3 9 8.5z"/></svg>
-          Trade quality since 2010
-        </span>
-      </div>
+      <span class="util-item"><span class="util-dot" aria-hidden="true"></span>Open 8 AM – 6 PM</span>
+      <span class="util-item util-loc"><svg width="14" height="14" aria-hidden="true"><use href="#i-pin"/></svg>Visit our yard</span>
+      <span class="util-item util-tag">Trade quality since 2010</span>
     </div>
   </div>
-
 
   <!-- ══════════ HEADER ══════════ -->
   <header class="header" role="banner">
     <div class="header-inner">
-
       <a href="#" class="logo" aria-label="Home">
-        <div class="logo-mark" id="logo-mark">
+        <span class="logo-mark" id="logo-mark">
           <img id="logo-img" alt="" hidden />
-          <svg id="logo-svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-          </svg>
-        </div>
-        <div class="logo-text">
-          <div class="logo-name" id="shop-name">Loading…</div>
-          <div class="logo-tag" id="shop-tag">Hardware &amp; Supplies</div>
-        </div>
+          <svg id="logo-svg" width="26" height="26" aria-hidden="true"><use href="#i-wrench"/></svg>
+        </span>
+        <span class="logo-text">
+          <span class="logo-name" id="shop-name">Loading…</span>
+          <span class="logo-tag" id="shop-tag">Hardware &amp; Supplies</span>
+        </span>
       </a>
 
       <div class="search" role="search">
-        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.3-4.3"></path>
-        </svg>
-        <input id="search-input" type="text" placeholder="Search tools, pipes, paint, cement…" autocomplete="off" aria-label="Search products" />
-        <button class="search-clear" id="search-clear" aria-label="Clear search" hidden>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-            <path d="M18 6 6 18M6 6l12 12"/>
-          </svg>
+        <svg class="search-icon" width="20" height="20" aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="search-input" type="search" placeholder="Search tools, pipes, paint, cement…" autocomplete="off" aria-label="Search products" />
+        <button class="search-clear" id="search-clear" type="button" aria-label="Clear search" hidden>
+          <svg width="16" height="16" aria-hidden="true"><use href="#i-close"/></svg>
         </button>
       </div>
 
       <div class="header-actions">
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark theme">
-          <svg class="theme-icon theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-          </svg>
-          <svg class="theme-icon theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-          </svg>
+        <button class="icon-btn theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme">
+          <svg class="ico-sun" width="20" height="20" aria-hidden="true"><use href="#i-sun"/></svg>
+          <svg class="ico-moon" width="20" height="20" aria-hidden="true"><use href="#i-moon"/></svg>
         </button>
-        <a href="#" class="phone-btn" id="phone-btn" hidden aria-label="Call the shop">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-          </svg>
+        <a href="#" class="btn btn-ghost" id="phone-btn" hidden aria-label="Call the shop">
+          <svg width="16" height="16" aria-hidden="true"><use href="#i-phone"/></svg>
           <span id="phone-text">Call</span>
         </a>
-        <a href="#" class="wa-btn" id="wa-btn" hidden aria-label="Order on WhatsApp">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
-          </svg>
+        <a href="#" class="btn btn-wa" id="wa-btn" hidden aria-label="Order on WhatsApp">
+          <svg width="18" height="18" aria-hidden="true"><use href="#i-wa"/></svg>
           <span>Order</span>
         </a>
       </div>
-
     </div>
 
-    <!-- MAIN MENU -->
-    <nav class="mainmenu" role="navigation" aria-label="Main menu">
+    <nav class="mainmenu" aria-label="Main menu">
       <div class="mainmenu-inner">
         <div class="mainmenu-scroll">
           <a href="#" class="menu-item active" data-action="home">Home</a>
-
-          <div class="menu-item menu-dropdown" data-dropdown="departments" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
-            <span>All Departments</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
+          <div class="menu-dropdown">
+            <button class="menu-item" type="button" id="dept-btn" aria-haspopup="true" aria-expanded="false" aria-controls="departments-panel">
+              All Departments
+              <svg width="12" height="12" aria-hidden="true"><use href="#i-chevron"/></svg>
+            </button>
             <div class="menu-panel" id="departments-panel" role="menu"></div>
           </div>
-
           <a href="#" class="menu-item" data-action="offers">Special Offers<span class="menu-badge">HOT</span></a>
           <a href="#" class="menu-item" data-action="about">About Us</a>
           <a href="#" class="menu-item" data-action="services">Services</a>
@@ -139,147 +121,88 @@
       </div>
     </nav>
 
-    <!-- CATEGORY BAR -->
-    <nav class="catbar" role="navigation" aria-label="Product categories">
-      <div class="catbar-inner">
-        <div class="catbar-scroll" id="category-bar" role="tablist"></div>
-      </div>
+    <nav class="catbar" aria-label="Product categories">
+      <div class="catbar-inner"><div class="catbar-scroll" id="category-bar" role="tablist"></div></div>
     </nav>
   </header>
 
-
   <!-- ══════════ HERO ══════════ -->
-  <section class="hero" role="region" aria-label="Introduction" id="hero">
-    <div class="hero-spotlight" aria-hidden="true"></div>
-
+  <section class="hero" id="hero" aria-label="Introduction">
     <div class="hero-inner">
-
       <div class="hero-left">
-        <div class="hero-eyebrow reveal" style="--i:0">
-          <span class="eyebrow-dot" aria-hidden="true"></span>
-          <span>Everything for the trade</span>
-        </div>
-
+        <p class="eyebrow reveal" style="--i:0"><span class="eyebrow-dot" aria-hidden="true"></span>Everything for the trade</p>
         <h1 class="hero-title reveal" style="--i:1">
-          <span class="hero-line">Built to last.</span>
-          <span class="hero-line hero-title-blue">Priced right.</span>
+          <span>Built to last.</span>
+          <span class="hl">Priced right.</span>
         </h1>
-
-        <p class="hero-desc reveal" id="hero-sub" style="--i:2">
-          Professional-grade hardware, tools, and building supplies. Trade prices, honest service, fast delivery.
-        </p>
+        <p class="hero-desc reveal" id="hero-sub" style="--i:2">Professional-grade hardware, tools, and building supplies. Trade prices, honest service, fast delivery.</p>
 
         <div class="hero-actions reveal" style="--i:3">
-          <button class="btn-primary" id="hero-cta">
-            <span>Shop Catalog</span>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
+          <button class="btn btn-primary" id="hero-cta" type="button">
+            Shop Catalog <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg>
           </button>
-          <a href="#" class="btn-outline" id="hero-contact">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
-            </svg>
+          <a href="#" class="btn btn-outline" id="hero-contact">
+            <svg width="16" height="16" aria-hidden="true"><use href="#i-wa"/></svg>
             <span id="hero-contact-text">Chat with us</span>
           </a>
         </div>
 
-        <div class="hero-stats reveal" role="list" aria-label="Shop statistics" style="--i:4">
-          <div class="stat" role="listitem">
-            <div class="stat-num" id="stat-products">0</div>
-            <div class="stat-lbl">Products in stock</div>
-          </div>
-          <div class="stat-div" aria-hidden="true"></div>
-          <div class="stat" role="listitem">
-            <div class="stat-num" id="stat-categories">0</div>
-            <div class="stat-lbl">Categories</div>
-          </div>
-          <div class="stat-div" aria-hidden="true"></div>
-          <div class="stat" role="listitem">
-            <div class="stat-num">Same day</div>
-            <div class="stat-lbl">Local delivery</div>
-          </div>
-        </div>
+        <dl class="hero-stats reveal" style="--i:4">
+          <div class="stat"><dt>Products in stock</dt><dd id="stat-products">0</dd></div>
+          <div class="stat"><dt>Categories</dt><dd id="stat-categories">0</dd></div>
+          <div class="stat"><dt>Local delivery</dt><dd>Same day</dd></div>
+        </dl>
       </div>
 
-      <div class="hero-bento reveal" style="--i:5">
-        <div class="bento bento-primary bento-wide">
-          <span class="bento-number">01</span>
-          <div class="bento-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-          </div>
-          <div class="bento-h">Trade account</div>
-          <div class="bento-p">Bulk pricing for contractors &amp; builders. Apply in-store or online.</div>
-        </div>
-
-        <div class="bento bento-glass">
-          <span class="bento-number">02</span>
-          <div class="bento-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <div class="bento-h">Quality assured</div>
-          <div class="bento-p">Every item inspected before sale</div>
-        </div>
-
-        <div class="bento bento-glass">
-          <span class="bento-number">03</span>
-          <div class="bento-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          </div>
-          <div class="bento-h">Expert advice</div>
-          <div class="bento-p">Talk to our team about your project</div>
-        </div>
+      <div class="bento reveal" style="--i:5">
+        <article class="tile tile-primary tile-wide">
+          <span class="tile-ico" aria-hidden="true"><svg width="24" height="24"><use href="#i-wrench"/></svg></span>
+          <h2>Trade account</h2>
+          <p>Bulk pricing for contractors &amp; builders. Apply in-store or online.</p>
+        </article>
+        <article class="tile">
+          <span class="tile-ico" aria-hidden="true"><svg width="24" height="24"><use href="#i-check"/></svg></span>
+          <h2>Quality assured</h2>
+          <p>Every item inspected before sale.</p>
+        </article>
+        <article class="tile">
+          <span class="tile-ico" aria-hidden="true"><svg width="24" height="24"><use href="#i-chat"/></svg></span>
+          <h2>Expert advice</h2>
+          <p>Talk to our team about your project.</p>
+        </article>
       </div>
-
     </div>
   </section>
-
 
   <!-- ══════════ MARQUEE ══════════ -->
   <section class="marquee" aria-hidden="true">
     <div class="marquee-track">
-      <span class="marquee-item">Call &amp; reserve stock</span>
-      <span class="marquee-item marquee-item-accent">WhatsApp ordering</span>
-      <span class="marquee-item">Bulk site delivery</span>
-      <span class="marquee-item marquee-item-accent">Trade accounts welcome</span>
-      <span class="marquee-item">7-day returns</span>
-      <span class="marquee-item marquee-item-accent">Open 8 AM – 6 PM</span>
-      <span class="marquee-item">Call &amp; reserve stock</span>
-      <span class="marquee-item marquee-item-accent">WhatsApp ordering</span>
-      <span class="marquee-item">Bulk site delivery</span>
-      <span class="marquee-item marquee-item-accent">Trade accounts welcome</span>
-      <span class="marquee-item">7-day returns</span>
-      <span class="marquee-item marquee-item-accent">Open 8 AM – 6 PM</span>
+      <span>Call &amp; reserve stock</span><span>WhatsApp ordering</span><span>Bulk site delivery</span>
+      <span>Trade accounts welcome</span><span>7-day returns</span><span>Open 8 AM – 6 PM</span>
+      <span>Call &amp; reserve stock</span><span>WhatsApp ordering</span><span>Bulk site delivery</span>
+      <span>Trade accounts welcome</span><span>7-day returns</span><span>Open 8 AM – 6 PM</span>
     </div>
   </section>
-
 
   <!-- ══════════ CATEGORY SHOWCASE ══════════ -->
-  <section class="showcase" role="region" aria-label="Shop by category">
-    <div class="showcase-inner">
-
-      <div class="showcase-head reveal" style="--i:0">
-        <div class="showcase-eyebrow">
-          <span class="showcase-eyebrow-line" aria-hidden="true"></span>
-          <span>01 / Browse the aisles</span>
-        </div>
-        <h2 class="showcase-title">Shop by category</h2>
-        <p class="showcase-sub">Everything you need, sorted by trade — from raw steel to finished fittings.</p>
+  <section class="showcase" aria-labelledby="showcase-title">
+    <div class="wrap">
+      <div class="section-head reveal" style="--i:0">
+        <p class="kicker">01 / Browse the aisles</p>
+        <h2 id="showcase-title">Shop by category</h2>
+        <p class="section-sub">Everything you need, sorted by trade — from raw steel to finished fittings.</p>
       </div>
-
       <div class="category-grid" id="category-showcase"></div>
-
     </div>
   </section>
 
-
   <!-- ══════════ TOOLBAR ══════════ -->
-  <section class="toolbar" role="region" aria-label="Sort and filter products">
+  <section class="toolbar" aria-label="Sort and filter products">
     <div class="toolbar-inner">
       <div class="toolbar-count" id="result-count" aria-live="polite">Loading…</div>
       <div class="toolbar-right">
         <label class="sort-lbl" for="sort-select">Sort</label>
-        <select class="sort-select" id="sort-select" aria-label="Sort products">
+        <select class="sort-select" id="sort-select">
           <option value="featured">Featured</option>
           <option value="price-asc">Price: Low → High</option>
           <option value="price-desc">Price: High → Low</option>
@@ -289,78 +212,52 @@
     </div>
   </section>
 
-
   <!-- ══════════ PRODUCTS ══════════ -->
-  <main class="products" id="products-content" role="main">
-    <div class="products-inner">
+  <main class="products" id="products-content">
+    <div class="wrap">
       <div id="content" class="state-loading" aria-live="polite" aria-busy="true">
-        <div class="loader">
-          <div class="loader-spinner" aria-hidden="true"></div>
-          <div class="loader-text">Loading stock…</div>
-        </div>
+        <div class="loader"><div class="spinner" aria-hidden="true"></div><div class="loader-text">Loading stock…</div></div>
       </div>
     </div>
   </main>
 
-
   <!-- ══════════ BULK ══════════ -->
-  <section class="bulk" role="region" aria-label="Bulk ordering">
+  <section class="bulk" aria-label="Bulk ordering">
     <div class="bulk-inner">
-      <div class="bulk-left reveal" style="--i:0">
-        <div class="bulk-eyebrow">For contractors &amp; builders</div>
+      <div class="reveal" style="--i:0">
+        <p class="kicker">For contractors &amp; builders</p>
         <h2 class="bulk-h">Ordering in bulk? We'll quote you a trade price.</h2>
-        <p class="bulk-p">Cement pallets, pipe bundles, roofing sheets, wire drums — send us your list and we'll respond with a delivered price within an hour.</p>
+        <p class="section-sub">Cement pallets, pipe bundles, roofing sheets, wire drums — send us your list and we'll respond with a delivered price within an hour.</p>
       </div>
       <div class="bulk-right reveal" style="--i:1">
-        <a href="#" class="btn-primary btn-large" id="bulk-cta">
-          <span>Request trade quote</span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
+        <a href="#" class="btn btn-primary btn-lg" id="bulk-cta">
+          Request trade quote <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg>
         </a>
       </div>
     </div>
   </section>
 
-
   <!-- ══════════ FOOTER ══════════ -->
   <footer class="footer" role="contentinfo">
-    <div class="footer-inner">
-
+    <div class="wrap">
       <div class="footer-top">
         <div class="footer-brand">
-          <div class="footer-mark" id="footer-mark">
+          <span class="logo-mark footer-mark" id="footer-mark">
             <img id="footer-logo-img" alt="" hidden />
-            <svg id="footer-logo-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-            </svg>
-          </div>
-          <div class="footer-brand-text">
+            <svg id="footer-logo-svg" width="24" height="24" aria-hidden="true"><use href="#i-wrench"/></svg>
+          </span>
+          <div>
             <div class="footer-name" id="footer-name">Shop</div>
-            <div class="footer-tagline" id="footer-tagline"></div>
+            <p class="footer-tagline" id="footer-tagline"></p>
           </div>
         </div>
-
         <div class="footer-cols">
-          <div class="footer-col">
-            <div class="footer-h">Visit us</div>
-            <div class="footer-body" id="footer-visit"></div>
-          </div>
-          <div class="footer-col">
-            <div class="footer-h">Contact</div>
-            <div class="footer-body" id="footer-contact"></div>
-          </div>
-          <div class="footer-col">
-            <div class="footer-h">Popular</div>
-            <div class="footer-body" id="footer-cats"></div>
-          </div>
-          <div class="footer-col">
-            <div class="footer-h">Follow</div>
-            <div class="footer-body" id="footer-follow"></div>
-          </div>
+          <div><h3 class="footer-h">Visit us</h3><div class="footer-body" id="footer-visit"></div></div>
+          <div><h3 class="footer-h">Contact</h3><div class="footer-body" id="footer-contact"></div></div>
+          <div><h3 class="footer-h">Popular</h3><div class="footer-body" id="footer-cats"></div></div>
+          <div><h3 class="footer-h">Follow</h3><div class="footer-body" id="footer-follow"></div></div>
         </div>
       </div>
-
       <div class="footer-bottom">
         <div id="footer-legal">© Shop</div>
         <div class="footer-note">Trade name &amp; prices on request</div>
@@ -368,36 +265,23 @@
     </div>
   </footer>
 
-
-  <!-- ══════════ FLOATING WA ══════════ -->
   <a href="#" class="wa-float" id="wa-fab" title="Chat on WhatsApp" aria-label="Chat on WhatsApp" hidden>
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
-    </svg>
+    <svg width="28" height="28" aria-hidden="true"><use href="#i-wa"/></svg>
   </a>
 
-
-  <!-- ══════════ MODAL ══════════ -->
+  <!-- ══════════ PRODUCT MODAL ══════════ -->
   <div class="modal-bg" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-name">
     <div class="modal-card">
-      <div class="modal-beam" aria-hidden="true"></div>
-
-      <button class="modal-x" id="modal-close" aria-label="Close dialog">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
-          <path d="M18 6 6 18M6 6l12 12"/>
-        </svg>
+      <button class="icon-btn modal-x" id="modal-close" type="button" aria-label="Close dialog">
+        <svg width="20" height="20" aria-hidden="true"><use href="#i-close"/></svg>
       </button>
-
       <div class="modal-grid">
         <div class="modal-visual">
-          <div class="modal-img-wrap">
-            <img id="modal-img" alt="" />
-          </div>
-          <div class="modal-status" id="modal-badge"></div>
+          <div class="modal-media" id="modal-media"></div>
+          <span class="status" id="modal-badge"></span>
         </div>
-
         <div class="modal-info">
-          <div class="modal-cat" id="modal-cat"></div>
+          <span class="chip" id="modal-cat"></span>
           <h2 class="modal-h" id="modal-name"></h2>
           <div class="modal-brand" id="modal-brand"></div>
 
@@ -406,33 +290,18 @@
             <div class="modal-unit-tag" id="modal-unit-tag"></div>
           </div>
 
-          <div class="modal-specs">
-            <div class="spec">
-              <div class="spec-lbl">SKU / Code</div>
-              <div class="spec-val mono" id="modal-sku">—</div>
-            </div>
-            <div class="spec">
-              <div class="spec-lbl">Unit</div>
-              <div class="spec-val" id="modal-unit">—</div>
-            </div>
-            <div class="spec">
-              <div class="spec-lbl">Availability</div>
-              <div class="spec-val" id="modal-status">—</div>
-            </div>
-          </div>
+          <dl class="modal-specs">
+            <div><dt>SKU / Code</dt><dd class="mono" id="modal-sku">—</dd></div>
+            <div><dt>Unit</dt><dd id="modal-unit">—</dd></div>
+            <div><dt>Availability</dt><dd id="modal-status">—</dd></div>
+          </dl>
 
           <div class="modal-actions">
-            <a href="#" class="modal-btn-primary" id="modal-order-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 0 5.4 0 12c0 2.1.6 4.1 1.6 5.9L0 24l6.3-1.6A11.9 11.9 0 0 0 12 24c6.6 0 12-5.4 12-12 0-3.2-1.2-6.2-3.5-8.5ZM12 21.9c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 0 1 2.1 12c0-5.5 4.4-9.9 9.9-9.9 2.6 0 5.1 1 7 2.9a9.9 9.9 0 0 1 2.9 7c0 5.5-4.4 9.9-9.9 9.9Zm5.4-7.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.2-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3Z"/>
-              </svg>
-              Order on WhatsApp
+            <a href="#" class="btn btn-wa btn-lg" id="modal-order-btn">
+              <svg width="20" height="20" aria-hidden="true"><use href="#i-wa"/></svg>Order on WhatsApp
             </a>
-            <a href="#" class="modal-btn-secondary" id="modal-call-btn" hidden>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
-              Call the shop
+            <a href="#" class="btn btn-outline" id="modal-call-btn" hidden>
+              <svg width="16" height="16" aria-hidden="true"><use href="#i-phone"/></svg>Call the shop
             </a>
           </div>
         </div>
@@ -441,7 +310,6 @@
   </div>
 
   <div class="toast-wrap" id="toast-wrap" role="status" aria-live="polite"></div>
-
   <script src="app.js"></script>
 </body>
 </html>
