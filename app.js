@@ -1,5 +1,6 @@
 // ==========================================================================
-// HARDWARE SHOP — APP LOGIC (DUAL-THEME BLUE)
+// HARDWARE SHOP — APP LOGIC (DUAL-THEME BLUE + 3D WORKSHOP SCENE
+// + 3D HARDWARE PRODUCT ICONS — WebGL-safe shared renderer)
 // ==========================================================================
 
 let products = [];
@@ -19,7 +20,7 @@ const setText = (id, value) => {
 
 
 // ==========================================================================
-// THEME TOGGLE
+// THEME
 // ==========================================================================
 
 const THEME_KEY = 'mac-theme';
@@ -34,12 +35,10 @@ const getStoredTheme = () => {
 
 const applyTheme = (theme, animate = true) => {
   const html = document.documentElement;
-
   if (animate) {
     html.classList.add('theme-transition');
     setTimeout(() => html.classList.remove('theme-transition'), 420);
   }
-
   html.setAttribute('data-theme', theme);
 
   const meta = $('meta-theme-color');
@@ -62,11 +61,8 @@ const toggleTheme = () => {
 
 const initTheme = () => {
   applyTheme(getStoredTheme(), false);
-
   const btn = $('theme-toggle');
   if (btn) btn.addEventListener('click', toggleTheme);
-
-  // React to system preference changes if user hasn't chosen
   window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
     let stored = null;
     try { stored = localStorage.getItem(THEME_KEY); } catch (err) {}
@@ -86,10 +82,7 @@ const showToast = (message, icon = 'ℹ️', duration = 3000) => {
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.setAttribute('role', 'status');
-  toast.innerHTML = `
-    <span class="toast-icon" aria-hidden="true">${icon}</span>
-    <span>${message}</span>
-  `;
+  toast.innerHTML = `<span class="toast-icon" aria-hidden="true">${icon}</span><span>${message}</span>`;
   wrap.appendChild(toast);
 
   setTimeout(() => {
@@ -135,9 +128,362 @@ const unitLabel = (u) => {
   return map[String(u).toLowerCase()] || `per ${u}`;
 };
 
-const productImageUrl = (p) => {
-  if (p && p.image && String(p.image).trim().length > 20) return p.image;
-  const initial = ((p && p.name) || '?').charAt(0).toUpperCase();
+const loadJSON = async (file, fallback = []) => {
+  try {
+    const res = await fetch(file + '?t=' + Date.now());
+    if (!res.ok) throw new Error(res.status);
+    return await res.json();
+  } catch (err) {
+    console.warn('Failed to load ' + file, err);
+    return fallback;
+  }
+};
+
+
+// ==========================================================================
+// 3D HARDWARE ICONS — SHARED RENDERER (ONE WebGL context for ALL types)
+// ==========================================================================
+
+const _3dIconCache = new Map();
+
+// Detect which 3D object to render
+const detectHardwareType = (product) => {
+  const nameText = (product && product.name) || '';
+  const catText  = (product && product.category) || '';
+  const text = `${nameText} ${catText}`.toLowerCase();
+
+  if (/nut|hex/.test(text))                    return 'nut';
+  if (/bolt/.test(text))                       return 'bolt';
+  if (/screwdriver|driver/.test(text))         return 'screwdriver';
+  if (/screw/.test(text))                      return 'bolt';
+  if (/gear|cog/.test(text))                   return 'gear';
+  if (/pipe|pvc|elbow|plumb|valve/.test(text)) return 'pipe';
+  if (/wrench|spanner/.test(text))             return 'wrench';
+  if (/hammer|mallet/.test(text))              return 'hammer';
+  if (/paint|color|colour|brush/.test(text))   return 'paint';
+  if (/brick|cement|block|concrete/.test(text))return 'brick';
+  if (/wire|cable|electric/.test(text))        return 'wire';
+  if (/sheet|roof|tin/.test(text))             return 'sheet';
+  if (/saw|blade/.test(text))                  return 'saw';
+  return 'nut';
+};
+
+// ========== HARDWARE OBJECT BUILDERS ==========
+
+const buildNut = (pMat, dMat) => {
+  const g = new THREE.Group();
+  const prism = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.55, 6), pMat);
+  g.add(prism);
+  const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.65, 24), dMat);
+  g.add(hole);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.05, 8, 24), pMat);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.28;
+  g.add(ring);
+  return g;
+};
+
+const buildBolt = (pMat, dMat) => {
+  const g = new THREE.Group();
+  const head = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.4, 6), pMat);
+  head.rotation.z = Math.PI / 2;
+  head.position.x = -1.1;
+  g.add(head);
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 2.1, 16), pMat);
+  shaft.rotation.z = Math.PI / 2;
+  shaft.position.x = 0.3;
+  g.add(shaft);
+  for (let i = 0; i < 8; i++) {
+    const thread = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.03, 5, 12), pMat);
+    thread.rotation.y = Math.PI / 2;
+    thread.position.x = -0.15 + i * 0.28;
+    g.add(thread);
+  }
+  return g;
+};
+
+const buildGear = (pMat, aMat) => {
+  const g = new THREE.Group();
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.4, 24), pMat);
+  g.add(hub);
+  const hole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 0.5, 16),
+    new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.6, roughness: 0.4 })
+  );
+  g.add(hole);
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2;
+    const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.28, 0.4), i % 3 === 0 ? aMat : pMat);
+    tooth.position.set(Math.cos(angle) * 0.9, 0, Math.sin(angle) * 0.9);
+    tooth.rotation.y = -angle;
+    g.add(tooth);
+  }
+  return g;
+};
+
+const buildPipe = (pMat, aMat) => {
+  const g = new THREE.Group();
+  const pipe = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.28, 16, 32, Math.PI / 2), pMat);
+  g.add(pipe);
+  const f1 = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.06, 8, 16), aMat);
+  f1.position.set(0.85, 0, 0);
+  f1.rotation.y = Math.PI / 2;
+  g.add(f1);
+  const f2 = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.06, 8, 16), aMat);
+  f2.position.set(0, 0.85, 0);
+  g.add(f2);
+  return g;
+};
+
+const buildScrewdriver = (pMat, aMat) => {
+  const g = new THREE.Group();
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.32, 1.6, 12), aMat);
+  handle.rotation.z = Math.PI / 2;
+  handle.position.x = -0.9;
+  g.add(handle);
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.8, 10), pMat);
+  shaft.rotation.z = Math.PI / 2;
+  shaft.position.x = 0.9;
+  g.add(shaft);
+  const tip = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.06, 0.25), pMat);
+  tip.position.x = 1.85;
+  g.add(tip);
+  return g;
+};
+
+const buildWrench = (pMat) => {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.3, 0.35), pMat);
+  g.add(body);
+  const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.25), pMat);
+  p1.position.set(-1.2, 0.55, 0);
+  g.add(p1);
+  const p2 = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.25), pMat);
+  p2.position.set(-1.2, -0.55, 0);
+  g.add(p2);
+  const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.6, 0.25), pMat);
+  bridge.position.set(-1.3, 0, 0);
+  g.add(bridge);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.15, 10, 20), pMat);
+  ring.position.set(1.2, 0, 0);
+  g.add(ring);
+  return g;
+};
+
+const buildHammer = (pMat, aMat) => {
+  const g = new THREE.Group();
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 2.2, 10), aMat);
+  handle.rotation.z = Math.PI / 2;
+  g.add(handle);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 0.5), pMat);
+  head.position.x = -1.1;
+  g.add(head);
+  const claw = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.5, 0.3), pMat);
+  claw.position.set(-1.35, -0.35, 0);
+  claw.rotation.z = 0.5;
+  g.add(claw);
+  return g;
+};
+
+const buildPaint = (pMat, aMat) => {
+  const g = new THREE.Group();
+  const bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.75, 1.4, 24), pMat);
+  g.add(bucket);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.08, 8, 32), aMat);
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.7;
+  g.add(rim);
+  const paint = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.85, 0.85, 0.05, 24),
+    new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.1, roughness: 0.6 })
+  );
+  paint.position.y = 0.66;
+  g.add(paint);
+  return g;
+};
+
+const buildBrick = (pMat, aMat) => {
+  const g = new THREE.Group();
+  const brick = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 0.9), pMat);
+  g.add(brick);
+  for (let i = -1; i <= 1; i++) {
+    const line = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.72, 0.92), aMat);
+    line.position.x = i * 0.6;
+    g.add(line);
+  }
+  const hLine = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.05, 0.92), aMat);
+  g.add(hLine);
+  return g;
+};
+
+const buildWire = (pMat, aMat) => {
+  const g = new THREE.Group();
+  const roll = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.35, 20, 40), pMat);
+  g.add(roll);
+  const inner = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.08, 10, 24), aMat);
+  g.add(inner);
+  return g;
+};
+
+const buildSheet = (pMat) => {
+  const g = new THREE.Group();
+  const sheet = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.06, 1.4), pMat);
+  g.add(sheet);
+  for (let i = -2; i <= 2; i++) {
+    const ridge = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.14, 0.08), pMat);
+    ridge.position.z = i * 0.28;
+    ridge.position.y = 0.08;
+    g.add(ridge);
+  }
+  return g;
+};
+
+const buildSaw = (pMat, dMat) => {
+  const g = new THREE.Group();
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.55, 0.06), pMat);
+  g.add(blade);
+  for (let i = 0; i < 12; i++) {
+    const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.15, 0.06), dMat);
+    tooth.position.set(-1.05 + i * 0.19, -0.33, 0);
+    tooth.rotation.z = (i % 2 === 0 ? -1 : 1) * 0.3;
+    g.add(tooth);
+  }
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 0.35), dMat);
+  handle.position.set(1.55, 0, 0);
+  g.add(handle);
+  return g;
+};
+
+// Factory
+const buildHardwareObject = (type, pMat, aMat, dMat) => {
+  switch (type) {
+    case 'nut':         return buildNut(pMat, dMat);
+    case 'bolt':        return buildBolt(pMat, dMat);
+    case 'gear':        return buildGear(pMat, aMat);
+    case 'pipe':        return buildPipe(pMat, aMat);
+    case 'screwdriver': return buildScrewdriver(pMat, aMat);
+    case 'wrench':      return buildWrench(pMat);
+    case 'hammer':      return buildHammer(pMat, aMat);
+    case 'paint':       return buildPaint(pMat, aMat);
+    case 'brick':       return buildBrick(pMat, aMat);
+    case 'wire':        return buildWire(pMat, aMat);
+    case 'sheet':       return buildSheet(pMat);
+    case 'saw':         return buildSaw(pMat, dMat);
+    default:            return buildNut(pMat, dMat);
+  }
+};
+
+// Dispose geometry only (materials are shared — don't dispose them)
+const disposeGroup = (obj) => {
+  obj.traverse((child) => {
+    if (child.geometry) child.geometry.dispose();
+  });
+};
+
+// ========== PRE-RENDER — ONE shared renderer for ALL types ==========
+
+const preRender3DIcons = () => {
+  if (typeof THREE === 'undefined') {
+    console.warn('[3D] Three.js not loaded — using SVG fallback for product icons');
+    return;
+  }
+
+  const types = ['nut', 'bolt', 'gear', 'pipe', 'screwdriver',
+                 'wrench', 'hammer', 'paint', 'brick', 'wire', 'sheet', 'saw'];
+
+  const W = 400;
+  const H = 300;
+  const PIXEL_RATIO = 1.5;
+
+  let renderer = null;
+
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = W * PIXEL_RATIO;
+    canvas.height = H * PIXEL_RATIO;
+
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+      preserveDrawingBuffer: true
+    });
+    renderer.setPixelRatio(PIXEL_RATIO);
+    renderer.setSize(W, H, false);
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
+    camera.position.set(3.8, 2.8, 4.8);
+    camera.lookAt(0, 0, 0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+
+    const key = new THREE.DirectionalLight(0xffffff, 1.1);
+    key.position.set(5, 8, 6);
+    scene.add(key);
+
+    const fill = new THREE.DirectionalLight(0x60a5fa, 0.8);
+    fill.position.set(-6, 2, 4);
+    scene.add(fill);
+
+    const rim = new THREE.DirectionalLight(0xf59e0b, 0.7);
+    rim.position.set(0, -5, -4);
+    scene.add(rim);
+
+    const pMat = new THREE.MeshStandardMaterial({
+      color: 0x3b82f6, metalness: 0.9, roughness: 0.25,
+      emissive: 0x1e40af, emissiveIntensity: 0.25
+    });
+    const aMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b, metalness: 0.8, roughness: 0.35,
+      emissive: 0xb45309, emissiveIntensity: 0.2
+    });
+    const dMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a, metalness: 0.7, roughness: 0.5
+    });
+
+    types.forEach((type) => {
+      try {
+        const obj = buildHardwareObject(type, pMat, aMat, dMat);
+        if (!obj) return;
+
+        obj.rotation.set(0.35, 0.65, 0.15);
+        scene.add(obj);
+
+        renderer.render(scene, camera);
+
+        const dataUrl = canvas.toDataURL('image/png');
+        if (dataUrl && dataUrl.length > 100) {
+          _3dIconCache.set(type, dataUrl);
+        }
+
+        scene.remove(obj);
+        disposeGroup(obj);
+      } catch (innerErr) {
+        console.warn('[3D] Render failed for', type, innerErr.message);
+      }
+    });
+
+    console.log('[3D] Pre-rendered', _3dIconCache.size, 'hardware icons (1 shared context)');
+
+  } catch (err) {
+    console.warn('[3D] Icon pre-render failed:', err.message);
+  } finally {
+    try { if (renderer) renderer.dispose(); } catch (e) {}
+  }
+};
+
+// Cache-only lookup — NEVER creates new contexts
+const getHardwareIcon = (type) => _3dIconCache.get(type) || null;
+
+
+// ==========================================================================
+// IMAGE RESOLVERS
+// ==========================================================================
+
+const svgFallbackImage = (name, categoryName) => {
+  const initial = (name || '?').charAt(0).toUpperCase();
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   const bg1 = isLight ? '#f1f5f9' : '#0a0e1f';
   const bg2 = isLight ? '#e2e8f0' : '#151b33';
@@ -162,20 +508,25 @@ const productImageUrl = (p) => {
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 };
 
-const loadJSON = async (file, fallback = []) => {
+// Real photo → 3D cache → SVG fallback
+const productImageUrl = (p) => {
   try {
-    const res = await fetch(file + '?t=' + Date.now());
-    if (!res.ok) throw new Error(res.status);
-    return await res.json();
-  } catch (err) {
-    console.warn('Failed to load ' + file, err);
-    return fallback;
+    if (p && p.image && String(p.image).trim().length > 20) {
+      return p.image;
+    }
+    const type = detectHardwareType(p);
+    const rendered = getHardwareIcon(type);
+    if (rendered) return rendered;
+    return svgFallbackImage(p && p.name, p && p.category);
+  } catch (e) {
+    console.warn('[Image] resolve failed:', e.message);
+    return svgFallbackImage(p && p.name, p && p.category);
   }
 };
 
 
 // ==========================================================================
-// CATEGORY ICONS + FALLBACK SVG
+// CATEGORY ICONS
 // ==========================================================================
 
 const CATEGORY_ICONS = {
@@ -208,65 +559,24 @@ const pickCategoryIcon = (name) => {
 
 const categoryIconEmoji = (name) => CATEGORY_EMOJI[pickCategoryIcon(name)] || '📦';
 
-const categoryFallbackSvg = (name) => {
-  const iconKey = pickCategoryIcon(name);
-  const iconPath = CATEGORY_ICONS[iconKey] || CATEGORY_ICONS.box;
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
-  const rot = Math.abs(hash) % 24;
-
-  const bg1 = isLight ? '#f1f5f9' : '#0a0e1f';
-  const bg2 = isLight ? '#e2e8f0' : '#151b33';
-  const stroke = isLight ? 'rgba(37,99,235,0.10)' : 'rgba(96,165,250,0.10)';
-  const glow = isLight ? 'rgba(37,99,235,0.18)' : 'rgba(96,165,250,0.28)';
-  const icon = isLight ? '#2563eb' : '#60a5fa';
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
-    <defs>
-      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="${bg1}"/>
-        <stop offset="1" stop-color="${bg2}"/>
-      </linearGradient>
-      <pattern id="p" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(${rot})">
-        <path d="M0 28 L28 0" stroke="${stroke}" stroke-width="1"/>
-      </pattern>
-      <radialGradient id="v" cx="0.5" cy="0.4" r="0.7">
-        <stop offset="0" stop-color="${glow}"/>
-        <stop offset="1" stop-color="rgba(0,0,0,0)"/>
-      </radialGradient>
-    </defs>
-    <rect width="400" height="300" fill="url(#g)"/>
-    <rect width="400" height="300" fill="url(#p)"/>
-    <rect width="400" height="300" fill="url(#v)"/>
-    <g transform="translate(200 150) scale(4.2) translate(-12 -12)"
-       fill="none" stroke="${icon}" stroke-width="1.5"
-       stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
-      <path d="${iconPath}"/>
-    </g>
-  </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-};
-
-const isRealImage = (v) =>
-  typeof v === 'string' && v.trim().length > 20 &&
-  (v.startsWith('data:image') || v.startsWith('http') || v.startsWith('/') ||
-   v.startsWith('./') || v.startsWith('../'));
-
 const categoryImageUrl = (cat) => {
-  const catImg = cat && (
-    cat.image || cat.imageUrl || cat.img ||
-    cat.thumbnail || cat.photo || cat.picture
-  );
-  if (isRealImage(catImg)) return catImg;
+  try {
+    const catImg = cat && (cat.image || cat.imageUrl || cat.img || cat.thumbnail || cat.photo || cat.picture);
+    if (typeof catImg === 'string' && catImg.trim().length > 20) return catImg;
 
-  const productWithImage = products.find(
-    (p) => p.category === cat.name && isRealImage(p.image)
-  );
-  if (productWithImage) return productWithImage.image;
+    const productWithImage = products.find(
+      (p) => p.category === cat.name && p.image && String(p.image).trim().length > 20
+    );
+    if (productWithImage) return productWithImage.image;
 
-  return categoryFallbackSvg(cat.name || 'Category');
+    const type = detectHardwareType({ name: '', category: cat.name });
+    const rendered = getHardwareIcon(type);
+    if (rendered) return rendered;
+
+    return svgFallbackImage(cat.name, cat.name);
+  } catch (e) {
+    return svgFallbackImage(cat.name, cat.name);
+  }
 };
 
 
@@ -291,16 +601,13 @@ const waLink = (phone, message = '') => {
 };
 
 const orderMessage = (product) => [
-  `Hello,`,
-  ``,
-  `I would like to order:`,
-  ``,
+  `Hello,`, ``,
+  `I would like to order:`, ``,
   `*${product.name}*`,
   product.sku ? `Code: ${product.sku}` : '',
   product.brand ? `Brand: ${product.brand}` : '',
   `Price: ${formatPrice(product.price)}${product.unit ? ' ' + unitLabel(product.unit) : ''}`,
-  `Quantity: __________`,
-  ``,
+  `Quantity: __________`, ``,
   `Please confirm stock and total.`
 ].filter(Boolean).join('\n');
 
@@ -312,6 +619,9 @@ const orderMessage = (product) => [
 const init = async () => {
 
   initTheme();
+
+  // Pre-render all 3D icons with ONE shared renderer
+  preRender3DIcons();
 
   const [loadedProducts, loadedCategories, loadedShop] = await Promise.all([
     loadJSON('products.json', []),
@@ -385,7 +695,6 @@ const initScrollReveal = () => {
     document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
     return;
   }
-
   const io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -394,19 +703,16 @@ const initScrollReveal = () => {
       }
     });
   }, { threshold: 0.1, rootMargin: '0px 0px -80px 0px' });
-
   document.querySelectorAll('.reveal:not(.in)').forEach(el => io.observe(el));
 };
 
 const observeNewReveals = () => {
   const fresh = document.querySelectorAll('.reveal:not(.in):not([data-obs])');
   if (!fresh.length) return;
-
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     fresh.forEach(el => el.classList.add('in'));
     return;
   }
-
   const io = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -415,7 +721,6 @@ const observeNewReveals = () => {
       }
     });
   }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
-
   fresh.forEach(el => {
     el.setAttribute('data-obs', '1');
     io.observe(el);
@@ -424,7 +729,7 @@ const observeNewReveals = () => {
 
 
 // ==========================================================================
-// HERO / CARD SPOTLIGHT
+// SPOTLIGHT / TILT
 // ==========================================================================
 
 const initHeroSpotlight = () => {
@@ -432,7 +737,6 @@ const initHeroSpotlight = () => {
   const spotlight = hero?.querySelector('.hero-spotlight');
   if (!hero || !spotlight) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
   hero.addEventListener('mousemove', (e) => {
     const rect = hero.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -447,30 +751,24 @@ const TILT_SELECTOR = '.card, .cat-card, .bento';
 const attachTilt = (el) => {
   if (!el || el.dataset.tilt === '1') return;
   el.dataset.tilt = '1';
-
-  // Only enable tilt on devices with a fine pointer + hover
   if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const strength =
-    el.classList.contains('card') ? 10 :
-    el.classList.contains('cat-card') ? 8 : 6;
+    el.classList.contains('card') ? 12 :
+    el.classList.contains('cat-card') ? 10 : 8;
 
   el.addEventListener('mousemove', (e) => {
     const rect = el.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width;
     const py = (e.clientY - rect.top) / rect.height;
-
     el.style.setProperty('--mx', (px * 100) + '%');
     el.style.setProperty('--my', (py * 100) + '%');
-
-    // Snappy transform transition while tilting (overrides reveal transition)
     el.style.transition = 'transform 0.12s ease-out, box-shadow 0.3s, border-color 0.3s';
-
     const rX = (0.5 - py) * strength;
     const rY = (px - 0.5) * strength;
     el.style.transform =
-      `perspective(900px) rotateX(${rX}deg) rotateY(${rY}deg) translateY(-8px) scale(1.02)`;
+      `perspective(900px) rotateX(${rX}deg) rotateY(${rY}deg) translateY(-10px) scale(1.02)`;
   });
 
   el.addEventListener('mouseleave', () => {
@@ -491,14 +789,11 @@ const initCardSpotlight = () => {
 const populateBrand = () => {
   const name = shopInfo.shopName || 'Hardware Shop';
   const tag  = shopInfo.description || 'Hardware & Building Supplies';
-
   document.title = name + ' — Hardware & Supplies';
   setText('shop-name', name);
   setText('shop-tag', tag);
-
   const meta = $('meta-desc');
   if (meta) meta.setAttribute('content', tag);
-
   renderLogo();
 };
 
@@ -508,7 +803,6 @@ const renderLogo = () => {
   const headerImg = $('logo-img');
   const headerSvg = $('logo-svg');
   const headerMark = $('logo-mark');
-
   if (logo && headerImg && headerSvg) {
     headerImg.src = logo;
     headerImg.alt = shopInfo.shopName || 'Logo';
@@ -523,7 +817,6 @@ const renderLogo = () => {
   const footerImg = $('footer-logo-img');
   const footerSvg = $('footer-logo-svg');
   const footerMark = $('footer-mark');
-
   if (logo && footerImg && footerSvg) {
     footerImg.src = logo;
     footerImg.alt = shopInfo.shopName || 'Logo';
@@ -537,13 +830,11 @@ const populateHero = () => {
   const tag = shopInfo.description ||
     'Professional-grade hardware, tools, and building supplies. Trade prices, honest service, fast delivery.';
   setText('hero-sub', tag);
-
   animateNum('stat-products', products.length);
   animateNum('stat-categories', categories.length);
 
   const phone = shopInfo.phone;
   const contactBtn = $('hero-contact');
-
   if (phone && contactBtn) {
     contactBtn.href = waLink(phone, 'Hello, I have a question about your products.');
     contactBtn.target = '_blank';
@@ -556,8 +847,7 @@ const populateHero = () => {
   const bulkCta = $('bulk-cta');
   if (phone && bulkCta) {
     bulkCta.href = waLink(phone,
-      `Hello,\n\nI'd like a trade quote for a bulk order.\n\nItems needed:\n1. \n2. \n3. \n\nDelivery to: \n\nThank you.`
-    );
+      `Hello,\n\nI'd like a trade quote for a bulk order.\n\nItems needed:\n1. \n2. \n3. \n\nDelivery to: \n\nThank you.`);
     bulkCta.target = '_blank';
     bulkCta.rel = 'noopener noreferrer';
   } else if (bulkCta) {
@@ -620,7 +910,6 @@ const populateCategoryBar = () => {
       <span class="cat-tab-count">${products.length}</span>
     </button>
   `;
-
   const tabs = categories.map((c) => `
     <button class="cat-tab" data-cat="${escapeHtml(c.name)}" role="tab" aria-selected="false">
       ${escapeHtml(c.name)}
@@ -650,13 +939,8 @@ const populateCategoryBar = () => {
 const populateCategoryShowcase = () => {
   const grid = $('category-showcase');
   if (!grid) return;
-
   if (!categories || categories.length === 0) {
-    grid.innerHTML = `
-      <div style="grid-column:1/-1; padding:48px; text-align:center; color:var(--text-3); font-style:italic;">
-        No categories yet.
-      </div>
-    `;
+    grid.innerHTML = `<div style="grid-column:1/-1; padding:48px; text-align:center; color:var(--text-muted); font-style:italic;">No categories yet.</div>`;
     return;
   }
 
@@ -664,7 +948,7 @@ const populateCategoryShowcase = () => {
     const img = categoryImageUrl(c);
     const emoji = categoryIconEmoji(c.name);
     const num = String(i + 1).padStart(2, '0');
-    const fallbackSvg = categoryFallbackSvg(c.name);
+    const fallback = svgFallbackImage(c.name, c.name);
 
     return `
       <button class="cat-card reveal" style="--i:${i % 6}" data-cat="${escapeHtml(c.name)}" type="button" aria-label="Browse ${escapeHtml(c.name)} — ${c.count} products">
@@ -673,7 +957,7 @@ const populateCategoryShowcase = () => {
                alt="${escapeHtml(c.name)}"
                loading="lazy"
                width="400" height="300"
-               data-fallback="${fallbackSvg}"
+               data-fallback="${escapeHtml(fallback)}"
                onerror="this.onerror=null;this.src=this.dataset.fallback;" />
           <span class="cat-card-icon" aria-hidden="true">${emoji}</span>
           <span class="cat-card-num">${num}</span>
@@ -684,9 +968,7 @@ const populateCategoryShowcase = () => {
             <div class="cat-card-count">${c.count} ${c.count === 1 ? 'product' : 'products'}</div>
           </div>
           <div class="cat-card-arrow" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </div>
         </div>
       </button>
@@ -721,22 +1003,15 @@ const populateFooter = () => {
   const contact = $('footer-contact');
   if (contact) {
     const items = [];
-    if (shopInfo.phone) {
-      items.push(`<a href="${waLink(shopInfo.phone, 'Hello!')}" target="_blank" rel="noopener noreferrer">WhatsApp chat</a>`);
-    }
-    if (shopInfo.email) {
-      items.push(`<a href="mailto:${escapeHtml(shopInfo.email)}">${escapeHtml(shopInfo.email)}</a>`);
-    }
+    if (shopInfo.phone) items.push(`<a href="${waLink(shopInfo.phone, 'Hello!')}" target="_blank" rel="noopener noreferrer">WhatsApp chat</a>`);
+    if (shopInfo.email) items.push(`<a href="mailto:${escapeHtml(shopInfo.email)}">${escapeHtml(shopInfo.email)}</a>`);
     contact.innerHTML = items.join('') || '<div class="static">—</div>';
   }
 
   const catCol = $('footer-cats');
   if (catCol) {
     const top = categories.slice(0, 5);
-    catCol.innerHTML = top.map((c) => `
-      <a href="#" data-footer-cat="${escapeHtml(c.name)}">${escapeHtml(c.name)}</a>
-    `).join('') || '<div class="static">—</div>';
-
+    catCol.innerHTML = top.map((c) => `<a href="#" data-footer-cat="${escapeHtml(c.name)}">${escapeHtml(c.name)}</a>`).join('') || '<div class="static">—</div>';
     catCol.querySelectorAll('[data-footer-cat]').forEach((a) => {
       a.addEventListener('click', (e) => {
         e.preventDefault();
@@ -753,15 +1028,9 @@ const populateFooter = () => {
   const follow = $('footer-follow');
   if (follow) {
     const items = [];
-    if (shopInfo.websiteUrl) {
-      items.push(`<a href="${escapeHtml(shopInfo.websiteUrl)}" target="_blank" rel="noopener noreferrer">Website</a>`);
-    }
-    if (shopInfo.whatsappGroupUrl) {
-      items.push(`<a href="${escapeHtml(shopInfo.whatsappGroupUrl)}" target="_blank" rel="noopener noreferrer">WhatsApp Group</a>`);
-    }
-    if (shopInfo.phone) {
-      items.push(`<a href="${waLink(shopInfo.phone, 'Hello!')}" target="_blank" rel="noopener noreferrer">Chat with us</a>`);
-    }
+    if (shopInfo.websiteUrl) items.push(`<a href="${escapeHtml(shopInfo.websiteUrl)}" target="_blank" rel="noopener noreferrer">Website</a>`);
+    if (shopInfo.whatsappGroupUrl) items.push(`<a href="${escapeHtml(shopInfo.whatsappGroupUrl)}" target="_blank" rel="noopener noreferrer">WhatsApp Group</a>`);
+    if (shopInfo.phone) items.push(`<a href="${waLink(shopInfo.phone, 'Hello!')}" target="_blank" rel="noopener noreferrer">Chat with us</a>`);
     follow.innerHTML = items.join('') || '<div class="static">—</div>';
   }
 
@@ -790,14 +1059,12 @@ const wireMainMenu = () => {
           item.setAttribute('aria-expanded', 'true');
         }
       };
-
       item.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
       item.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
       });
       return;
     }
-
     item.addEventListener('click', (e) => {
       e.preventDefault();
       handleMenuAction(item.dataset.action);
@@ -821,10 +1088,7 @@ const buildDepartmentsPanel = () => {
   if (!panel) return;
 
   if (!categories || categories.length === 0) {
-    panel.innerHTML = `
-      <div class="menu-panel-head">All Departments</div>
-      <div class="menu-panel-empty">No departments yet</div>
-    `;
+    panel.innerHTML = `<div class="menu-panel-head">All Departments</div><div class="menu-panel-empty">No departments yet</div>`;
     return;
   }
 
@@ -835,10 +1099,7 @@ const buildDepartmentsPanel = () => {
     </div>
   `).join('');
 
-  panel.innerHTML = `
-    <div class="menu-panel-head">All Departments</div>
-    ${items}
-  `;
+  panel.innerHTML = `<div class="menu-panel-head">All Departments</div>${items}`;
 
   panel.querySelectorAll('.menu-panel-item').forEach((el) => {
     const activate = () => {
@@ -850,7 +1111,6 @@ const buildDepartmentsPanel = () => {
         d.setAttribute('aria-expanded', 'false');
       });
     };
-
     el.addEventListener('click', activate);
     el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
@@ -864,9 +1124,7 @@ const handleMenuAction = (action) => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       break;
     case 'offers': {
-      const offerCount = products.filter(
-        (p) => p.stockStatus === 'low' || p.stockStatus === 'out'
-      ).length;
+      const offerCount = products.filter((p) => p.stockStatus === 'low' || p.stockStatus === 'out').length;
       if (offerCount > 0) {
         showToast(`${offerCount} product${offerCount === 1 ? '' : 's'} on special`, '🔥');
         document.querySelector('.products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -927,25 +1185,19 @@ const wireEvents = () => {
 
 const getFiltered = () => {
   let list = products.slice();
-
-  if (activeCategory) {
-    list = list.filter((p) => p.category === activeCategory);
-  }
-
+  if (activeCategory) list = list.filter((p) => p.category === activeCategory);
   if (searchTerm) {
     list = list.filter((p) => {
       const hay = [p.name || '', p.brand || '', p.sku || '', p.category || ''].join(' ').toLowerCase();
       return hay.includes(searchTerm);
     });
   }
-
   switch (sortMode) {
     case 'price-asc':  list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0)); break;
     case 'price-desc': list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0)); break;
     case 'name-asc':   list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))); break;
     default: break;
   }
-
   return list;
 };
 
@@ -955,7 +1207,6 @@ const getFiltered = () => {
 // ==========================================================================
 
 const render = () => {
-
   const content = $('content');
   if (!content) return;
 
@@ -978,9 +1229,7 @@ const render = () => {
       <div class="empty-p">${searchTerm
         ? `Nothing matches "<strong>${escapeHtml(searchTerm)}</strong>". Try a different search term.`
         : 'No products in this category yet.'}</div>
-      <button class="empty-btn" onclick="window.clearAllFilters()">
-        View all products
-      </button>
+      <button class="empty-btn" onclick="window.clearAllFilters()">View all products</button>
     `;
     return;
   }
@@ -990,10 +1239,16 @@ const render = () => {
     <div class="grid" role="list">
       ${filtered.map((p, i) => {
         const waClickable = !!shopInfo.phone;
+        const fallback = svgFallbackImage(p.name, p.category);
         return `
           <div class="card reveal" style="--i:${i % 8}" data-id="${escapeHtml(p.id)}" role="listitem" tabindex="0">
             <div class="card-img">
-              <img src="${productImageUrl(p)}" alt="${escapeHtml(p.name)}" loading="lazy" width="400" height="300" />
+              <img src="${productImageUrl(p)}"
+                   alt="${escapeHtml(p.name)}"
+                   loading="lazy"
+                   width="400" height="300"
+                   data-fallback="${escapeHtml(fallback)}"
+                   onerror="this.onerror=null;this.src=this.dataset.fallback;" />
               <span class="card-badge ${stockClass(p.stockStatus)}">${stockLabel(p.stockStatus)}</span>
               ${waClickable ? `
                 <button class="card-wa" data-product-id="${escapeHtml(p.id)}" aria-label="Order ${escapeHtml(p.name)} on WhatsApp">
@@ -1013,9 +1268,7 @@ const render = () => {
                   <div class="card-price">${formatPrice(p.price)}</div>
                 </div>
                 <div class="card-arrow" aria-hidden="true">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </div>
               </div>
             </div>
@@ -1031,12 +1284,10 @@ const render = () => {
       const product = products.find((p) => String(p.id) === String(id));
       if (product) openModal(product);
     };
-
     card.addEventListener('click', (e) => {
       if (e.target.closest('.card-wa')) return;
       openProduct();
     });
-
     card.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProduct(); }
     });
@@ -1059,79 +1310,89 @@ const render = () => {
 
 
 // ==========================================================================
-// MODAL
+// MODAL — DEFENSIVE
 // ==========================================================================
 
 const openModal = (product) => {
+  try {
+    const setVal = (id, value) => {
+      const el = $(id);
+      if (!el) return;
+      const has = value !== null && value !== undefined && String(value).trim() !== '';
+      el.textContent = has ? String(value) : '—';
+    };
 
-  const setVal = (id, value) => {
-    const el = $(id);
-    if (!el) return;
-    const has = value !== null && value !== undefined && String(value).trim() !== '';
-    el.textContent = has ? String(value) : '—';
-  };
-
-  const img = $('modal-img');
-  if (img) {
-    img.src = productImageUrl(product);
-    img.alt = product.name || '';
-  }
-
-  const badge = $('modal-badge');
-  if (badge) {
-    badge.textContent = stockLabel(product.stockStatus);
-    badge.className = 'modal-status ' + stockClass(product.stockStatus);
-  }
-
-  const cat = $('modal-cat');
-  if (cat) {
-    const hasCat = !!(product.category && String(product.category).trim());
-    cat.textContent = hasCat ? product.category : '';
-    cat.hidden = !hasCat;
-  }
-
-  setVal('modal-name', product.name);
-
-  const brandEl = $('modal-brand');
-  if (brandEl) {
-    const hasBrand = !!(product.brand && String(product.brand).trim());
-    brandEl.textContent = hasBrand ? product.brand : '';
-    brandEl.hidden = !hasBrand;
-  }
-
-  setVal('modal-price', formatPrice(product.price));
-  setVal('modal-unit-tag', unitLabel(product.unit));
-  setVal('modal-sku', product.sku);
-  setVal('modal-unit', product.unit);
-  setVal('modal-status', stockLabel(product.stockStatus));
-
-  const orderBtn = $('modal-order-btn');
-  if (orderBtn) {
-    if (shopInfo.phone) {
-      orderBtn.href = waLink(shopInfo.phone, orderMessage(product));
-      orderBtn.target = '_blank';
-      orderBtn.rel = 'noopener noreferrer';
-      orderBtn.hidden = false;
-    } else {
-      orderBtn.hidden = true;
+    const img = $('modal-img');
+    if (img) {
+      const fallback = svgFallbackImage(product.name, product.category);
+      img.onerror = () => {
+        img.onerror = null;
+        img.src = fallback;
+      };
+      img.src = productImageUrl(product);
+      img.alt = product.name || '';
     }
-  }
 
-  const callBtn = $('modal-call-btn');
-  if (callBtn) {
-    if (shopInfo.phone) {
-      callBtn.href = 'tel:' + shopInfo.phone;
-      callBtn.hidden = false;
-    } else {
-      callBtn.hidden = true;
+    const badge = $('modal-badge');
+    if (badge) {
+      badge.textContent = stockLabel(product.stockStatus);
+      badge.className = 'modal-status ' + stockClass(product.stockStatus);
     }
-  }
 
-  const modal = $('modal');
-  if (modal) {
-    modal.hidden = false;
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => $('modal-close')?.focus(), 50);
+    const cat = $('modal-cat');
+    if (cat) {
+      const hasCat = !!(product.category && String(product.category).trim());
+      cat.textContent = hasCat ? product.category : '';
+      cat.hidden = !hasCat;
+    }
+
+    setVal('modal-name', product.name);
+
+    const brandEl = $('modal-brand');
+    if (brandEl) {
+      const hasBrand = !!(product.brand && String(product.brand).trim());
+      brandEl.textContent = hasBrand ? product.brand : '';
+      brandEl.hidden = !hasBrand;
+    }
+
+    setVal('modal-price', formatPrice(product.price));
+    setVal('modal-unit-tag', unitLabel(product.unit));
+    setVal('modal-sku', product.sku);
+    setVal('modal-unit', product.unit);
+    setVal('modal-status', stockLabel(product.stockStatus));
+
+    const orderBtn = $('modal-order-btn');
+    if (orderBtn) {
+      if (shopInfo.phone) {
+        orderBtn.href = waLink(shopInfo.phone, orderMessage(product));
+        orderBtn.target = '_blank';
+        orderBtn.rel = 'noopener noreferrer';
+        orderBtn.hidden = false;
+      } else {
+        orderBtn.hidden = true;
+      }
+    }
+
+    const callBtn = $('modal-call-btn');
+    if (callBtn) {
+      if (shopInfo.phone) {
+        callBtn.href = 'tel:' + shopInfo.phone;
+        callBtn.hidden = false;
+      } else {
+        callBtn.hidden = true;
+      }
+    }
+
+    const modal = $('modal');
+    if (modal) {
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => $('modal-close')?.focus(), 50);
+    }
+
+  } catch (err) {
+    console.error('[Modal] open failed:', err);
+    showToast('Could not open product details', 'error');
   }
 };
 
@@ -1169,18 +1430,102 @@ window.clearAllFilters = () => {
 };
 
 
-
 // ==========================================================================
-// HERO 3D SCENE (THREE.JS) — wireframe hardware core + orbit rings + dust
+// HERO 3D WORKSHOP SCENE
 // ==========================================================================
 
 let hero3D = null;
 
 const hero3DColor = () => {
-  const css = getComputedStyle(document.documentElement)
-    .getPropertyValue('--primary').trim();
+  const css = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
   try { return new THREE.Color(css || '#3b82f6'); }
   catch (e) { return new THREE.Color('#3b82f6'); }
+};
+
+const wireMat = (color, opacity = 0.85) => new THREE.MeshBasicMaterial({
+  color, wireframe: true, transparent: true, opacity
+});
+
+const glowMat = (color, opacity = 0.15) => new THREE.MeshBasicMaterial({
+  color, transparent: true, opacity, depthWrite: false
+});
+
+const heroMakeHexNut = (color, scale = 1) => {
+  const g = new THREE.Group();
+  const outer = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.45, 6), wireMat(color, 0.9));
+  outer.rotation.x = Math.PI / 2;
+  g.add(outer);
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.04, 6, 32), wireMat(color, 0.55)));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(1.02, 0.04, 6, 32), wireMat(color, 0.55)));
+  g.scale.setScalar(scale);
+  return g;
+};
+
+const heroMakeBolt = (color, scale = 1) => {
+  const g = new THREE.Group();
+  const head = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.35, 6), wireMat(color, 0.9));
+  head.rotation.x = Math.PI / 2;
+  head.position.z = 1.2;
+  g.add(head);
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 2, 12), wireMat(color, 0.7));
+  shaft.rotation.x = Math.PI / 2;
+  shaft.position.z = -0.15;
+  g.add(shaft);
+  for (let i = 0; i < 8; i++) {
+    const thread = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.025, 4, 16), wireMat(color, 0.55));
+    thread.position.z = -0.6 - i * 0.18;
+    g.add(thread);
+  }
+  g.scale.setScalar(scale);
+  return g;
+};
+
+const heroMakeGear = (color, scale = 1) => {
+  const g = new THREE.Group();
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.4, 16), wireMat(color, 0.85));
+  hub.rotation.x = Math.PI / 2;
+  g.add(hub);
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.04, 6, 16), wireMat(color, 0.6)));
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2;
+    const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.22, 0.4), wireMat(color, 0.85));
+    tooth.position.set(Math.cos(angle) * 0.78, Math.sin(angle) * 0.78, 0);
+    tooth.rotation.z = angle;
+    g.add(tooth);
+  }
+  g.scale.setScalar(scale);
+  return g;
+};
+
+const heroMakePipe = (color, scale = 1) => {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.2, 10, 24, Math.PI / 2), wireMat(color, 0.85)));
+  const f1 = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.03, 6, 16), wireMat(color, 0.6));
+  f1.position.set(0.7, 0, 0);
+  f1.rotation.y = Math.PI / 2;
+  g.add(f1);
+  const f2 = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.03, 6, 16), wireMat(color, 0.6));
+  f2.position.set(0, 0.7, 0);
+  g.add(f2);
+  g.scale.setScalar(scale);
+  return g;
+};
+
+const heroMakeScrewdriver = (color, scale = 1) => {
+  const g = new THREE.Group();
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.15, 1.2, 8), wireMat(color, 0.85));
+  handle.rotation.x = Math.PI / 2;
+  handle.position.z = 0.6;
+  g.add(handle);
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.5, 8), wireMat(color, 0.7));
+  shaft.rotation.x = Math.PI / 2;
+  shaft.position.z = -0.75;
+  g.add(shaft);
+  const tip = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.06, 0.2), wireMat(color, 0.85));
+  tip.position.z = -1.55;
+  g.add(tip);
+  g.scale.setScalar(scale);
+  return g;
 };
 
 const initHero3D = () => {
@@ -1189,58 +1534,78 @@ const initHero3D = () => {
   if (!canvas || !hero) return;
   if (typeof THREE === 'undefined') { canvas.remove(); return; }
 
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const isMobile = window.innerWidth < 768;
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas, alpha: true, antialias: !isMobile, powerPreference: 'high-performance'
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+  } catch (e) {
+    console.warn('[Hero3D] WebGL unavailable:', e.message);
+    canvas.remove();
+    return;
+  }
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
-  camera.position.set(0, 0, 7);
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  camera.position.set(0, 0, isMobile ? 11 : 9);
 
   const primary = hero3DColor();
 
-  // Core: wireframe icosahedron — an abstract "hardware nut"
-  const core = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.6, 0),
-    new THREE.MeshBasicMaterial({ color: primary, wireframe: true, transparent: true, opacity: 0.85 })
-  );
+  const core = new THREE.Group();
+  core.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), glowMat(primary, 0.25)));
+  const coreWire = new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 0), wireMat(primary, 0.9));
+  core.add(coreWire);
+
+  const electronMat = new THREE.MeshBasicMaterial({ color: primary, transparent: true, opacity: 0.9 });
+  for (let i = 0; i < 3; i++) {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), electronMat);
+    e.userData.baseAngle = (i / 3) * Math.PI * 2;
+    e.userData.orbitRadius = 1.4;
+    core.add(e);
+  }
   scene.add(core);
 
-  // Inner soft-glow solid
-  const inner = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(0.9, 1),
-    new THREE.MeshBasicMaterial({ color: primary, transparent: true, opacity: 0.12 })
-  );
-  scene.add(inner);
+  const orbiters = [];
+  const addOrbiter = (obj, radius, angle, yOffset = 0, speed = 1) => {
+    obj.userData = { ...obj.userData, orbitRadius: radius, baseAngle: angle, speed, yOffset };
+    scene.add(obj);
+    orbiters.push(obj);
+  };
 
-  // Orbit ring 1
-  const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(2.6, 0.03, 12, 100),
-    new THREE.MeshBasicMaterial({ color: primary, transparent: true, opacity: 0.5 })
-  );
-  ring.rotation.x = Math.PI / 2.4;
-  scene.add(ring);
+  addOrbiter(heroMakeHexNut(primary, 0.55), 3.2, Math.PI * 0.9, 1.2, 0.4);
+  addOrbiter(heroMakeBolt(primary, 0.5), 3.5, 0, 0.5, -0.3);
+  addOrbiter(heroMakeGear(primary, 0.55), 3.0, -Math.PI * 0.3, 1.5, 0.35);
+  addOrbiter(heroMakePipe(primary, 0.6), 3.3, Math.PI * 0.8, -1.2, -0.25);
+  addOrbiter(heroMakeScrewdriver(primary, 0.5), 3.7, Math.PI * 0.15, -1.0, 0.3);
 
-  // Orbit ring 2
-  const ring2 = ring.clone();
-  ring2.scale.setScalar(1.4);
-  ring2.rotation.x = Math.PI / 1.7;
-  ring2.rotation.y = 0.6;
-  ring2.material = ring.material.clone();
-  ring2.material.opacity = 0.25;
+  const ring1 = new THREE.Mesh(
+    new THREE.TorusGeometry(2.8, 0.012, 6, 120),
+    new THREE.MeshBasicMaterial({ color: primary, transparent: true, opacity: 0.4 })
+  );
+  ring1.rotation.x = Math.PI / 2.2;
+  scene.add(ring1);
+
+  const ring2 = new THREE.Mesh(
+    new THREE.TorusGeometry(3.6, 0.012, 6, 120),
+    new THREE.MeshBasicMaterial({ color: primary, transparent: true, opacity: 0.25 })
+  );
+  ring2.rotation.x = Math.PI / 1.6;
+  ring2.rotation.y = 0.5;
   scene.add(ring2);
 
-  // Floating dust particles
-  const pCount = 160;
+  const pCount = isMobile ? 100 : 200;
   const positions = new Float32Array(pCount * 3);
   for (let i = 0; i < pCount; i++) {
-    positions[i * 3]     = (Math.random() - 0.5) * 18;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+    positions[i * 3]     = (Math.random() - 0.5) * 22;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 14;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
   }
   const pGeo = new THREE.BufferGeometry();
   pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({
-    color: primary, size: 0.05, transparent: true, opacity: 0.7
+    color: primary, size: 0.04, transparent: true, opacity: 0.55
   }));
   scene.add(particles);
 
@@ -1254,7 +1619,6 @@ const initHero3D = () => {
   resize();
   window.addEventListener('resize', resize);
 
-  // Mouse parallax — camera drifts toward cursor
   let mx = 0, my = 0;
   hero.addEventListener('mousemove', (e) => {
     const rect = hero.getBoundingClientRect();
@@ -1267,33 +1631,54 @@ const initHero3D = () => {
 
   const frame = () => {
     const t = clock.getElapsedTime();
-    core.rotation.x = t * 0.25;
-    core.rotation.y = t * 0.35;
-    inner.rotation.y = -t * 0.2;
-    ring.rotation.z = t * 0.15;
-    ring2.rotation.z = -t * 0.1;
+    core.rotation.y = t * 0.3;
+    core.rotation.x = Math.sin(t * 0.4) * 0.2;
+    coreWire.rotation.y = -t * 0.5;
+    core.position.y = Math.sin(t * 0.8) * 0.15;
+
+    core.children.forEach((child) => {
+      if (child.userData.baseAngle !== undefined) {
+        const a = child.userData.baseAngle + t * 0.8;
+        child.position.x = Math.cos(a) * child.userData.orbitRadius;
+        child.position.y = Math.sin(a) * child.userData.orbitRadius * 0.5;
+      }
+    });
+
+    orbiters.forEach((obj) => {
+      const d = obj.userData;
+      const a = d.baseAngle + t * 0.15 * d.speed;
+      obj.position.x = Math.cos(a) * d.orbitRadius;
+      obj.position.z = Math.sin(a) * d.orbitRadius * 0.6;
+      obj.position.y = d.yOffset + Math.sin(t * 0.6 + d.baseAngle) * 0.3;
+      obj.rotation.y = t * 0.4 * d.speed;
+      obj.rotation.x = Math.sin(t * 0.3 + d.baseAngle) * 0.3;
+    });
+
+    ring1.rotation.z = t * 0.1;
+    ring2.rotation.z = -t * 0.08;
     particles.rotation.y = t * 0.02;
-    core.position.y = Math.sin(t * 0.8) * 0.25;
-    inner.position.y = core.position.y;
-    camera.position.x += (mx * 0.8 - camera.position.x) * 0.05;
-    camera.position.y += (-my * 0.5 - camera.position.y) * 0.05;
+
+    camera.position.x += (mx * 1.2 - camera.position.x) * 0.05;
+    camera.position.y += (-my * 0.8 - camera.position.y) * 0.05;
     camera.lookAt(0, 0, 0);
+
     renderer.render(scene, camera);
     if (!reduceMotion) requestAnimationFrame(frame);
   };
   frame();
 
-  hero3D = { core, inner, ring, ring2, particles, renderer, scene, camera };
+  hero3D = { core, orbiters, ring1, ring2, particles, renderer, scene, camera };
 };
 
-// Recolor the 3D scene when the user flips light/dark theme
 const updateHero3DTheme = () => {
   if (!hero3D || typeof THREE === 'undefined') return;
   const c = hero3DColor();
-  [hero3D.core, hero3D.inner, hero3D.ring, hero3D.ring2, hero3D.particles]
-    .forEach((m) => m.material.color.copy(c));
+  hero3D.scene.traverse((obj) => {
+    if (obj.material && obj.material.color) obj.material.color.copy(c);
+  });
   hero3D.renderer.render(hero3D.scene, hero3D.camera);
 };
+
 
 // ==========================================================================
 // BOOT
